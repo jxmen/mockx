@@ -1,0 +1,10 @@
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: mockx
+      MYSQL_USER: mockx
+      MYSQL_PASSWORD: mockx
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306"
