@@ -35,5 +35,15 @@ class Account(
         this.holdAmount += money
     }
 
+    /**
+     * 취소, 차액 등
+     */
+    fun release(money: Money) {
+        require(money.isPositive()) { "양수만 허용됩니다." }
+        require(money <= holdAmount) { "hold된 금액만큼만 허용됩니다." }
+
+        this.holdAmount -= money
+    }
+
     fun availableAmount(): Money = (balance - holdAmount)
 }
