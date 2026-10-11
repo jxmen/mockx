@@ -32,6 +32,8 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers-junit-jupiter")
     testImplementation("org.testcontainers:testcontainers-mysql")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    testImplementation("io.kotest:kotest-runner-junit5:6.2.5")    // 테스트 실행기
+    testImplementation("io.kotest:kotest-assertions-core:6.2.5")  // shouldBe 같은 검증 함수
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
