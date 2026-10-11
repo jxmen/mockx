@@ -37,8 +37,7 @@ class AccountTest :
                     account.deposit(Money(10_000))
                     account.hold(Money(5_000))
 
-                    account.balance shouldBe Money(10_000)
-                    account.holdAmount shouldBe Money(5_000)
+                    account.availableAmount() shouldBe Money(5_000)
                 }
             }
             context("주문가능금액과 정확히 같은 금액을 hold하면") {
@@ -48,8 +47,7 @@ class AccountTest :
                     account.deposit(Money(10_000))
                     account.hold(Money(10_000))
 
-                    account.balance shouldBe Money(10_000)
-                    account.holdAmount shouldBe Money(10_000)
+                    account.availableAmount() shouldBe Money(0)
                 }
             }
             context("주문가능금액보다 큰 금액을 hold하면") {
@@ -61,6 +59,8 @@ class AccountTest :
                     shouldThrow<IllegalArgumentException> {
                         account.hold(Money(10_001))
                     }
+                    account.balance shouldBe Money(10_000)
+                    account.holdAmount shouldBe Money(0)
                 }
             }
             context("이미 hold한 금액이 있을 때 추가로 hold하면") {
@@ -84,7 +84,9 @@ class AccountTest :
                     account.deposit(Money(10_000))
 
                     shouldThrow<IllegalArgumentException> { account.hold(Money(0)) }
+                    account.holdAmount shouldBe Money(0)
                     shouldThrow<IllegalArgumentException> { account.hold(Money(-1)) }
+                    account.holdAmount shouldBe Money(0)
                 }
             }
         }

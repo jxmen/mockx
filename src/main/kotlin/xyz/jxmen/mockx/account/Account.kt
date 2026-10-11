@@ -35,5 +35,5 @@ class Account(
         this.holdAmount += money
     }
 
-    private fun availableAmount(): Money = (balance - holdAmount)
+    fun availableAmount(): Money = (balance - holdAmount)
 }
