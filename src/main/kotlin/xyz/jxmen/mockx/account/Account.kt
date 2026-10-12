@@ -1,9 +1,30 @@
 package xyz.jxmen.mockx.account
 
-class Account(
-    val id: Long = 0L,
-    val memberId: Long,
+enum class AccountType(
+    val prefixNum: String,
 ) {
+    Brokerage("100"), // 위탁
+}
+
+class Account(
+    val memberId: Long,
+    val number: AccountNumber,
+    val type: AccountType,
+) {
+    val id: Long = 0L
+
+    companion object {
+        fun create(
+            memberId: Long,
+            number: AccountNumber,
+        ): Account =
+            Account(
+                memberId = memberId,
+                number = number,
+                type = AccountType.Brokerage,
+            )
+    }
+
     /**
      * 예수금.
      */
