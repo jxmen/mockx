@@ -6,7 +6,6 @@ import io.kotest.matchers.shouldBe
 
 class AccountTest :
     DescribeSpec({
-
         describe("deposit") {
             context("양수 금액을 입금하면") {
                 it("예수금이 그만큼 늘어난다") {
