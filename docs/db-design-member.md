@@ -16,10 +16,15 @@
 |---|---|
 | 테이블 이름 | 단수형(`member`, `account`). 예약어와 겹치면 접두어를 붙인다. 주문 테이블은 `order`가 MySQL 예약어이므로 `stock_order`로 한다 |
 | 시간 컬럼 | `DATETIME(6)`, UTC로 저장한다. Kotlin 타입은 `Instant`. ISO 8601은 API 응답에서 쓰는 표기법이다 |
+| 생성·수정 시각 | 엔티티 테이블에는 `created_at`, `updated_at`을 둔다. 값은 애플리케이션이 채운다(`BaseTimeEntity` + Spring Data JPA Auditing). DB `DEFAULT`, `ON UPDATE`는 쓰지 않는다 |
 | 제약 이름 | 직접 지정한다(`uk_<테이블>_<컬럼>`). 409로 변환할 때 어떤 제약이 깨졌는지 구분하는 데 쓴다 |
 | 스키마 관리 | Flyway 마이그레이션으로 관리하고, Hibernate는 `ddl-auto: validate`로 둔다 |
 
 - `DATETIME(6)`의 `(6)`은 마이크로초 정밀도다. 정밀도가 없으면 초 단위에서 잘려, 저장한 값과 다시 읽은 값이 달라진다.
+- `DATETIME`은 타임존 정보 없이 달력 값을 그대로 저장한다. UTC라는 것은 약속이고, `hibernate.jdbc.time_zone: UTC`가 이를 지킨다.
+- 생성·수정 시각을 DB가 채우지 않는 이유: `CURRENT_TIMESTAMP`는 MySQL 세션 `time_zone`을 따르므로 UTC가 보장되지 않는다. 또 값이 빠졌을 때 DB 시각으로 조용히 채워지지 않고 NOT NULL 위반으로 드러나게 한다.
+- 정밀도를 넘는 소수 초는 MySQL이 반올림한다. `Instant.now()`가 나노초 값을 줄 수 있으므로 시각을 만드는 곳(`DateTimeProvider`)에서 마이크로초로 잘라 둔다.
+- `updated_at`은 마지막으로 바뀐 시각일 뿐 이력이 아니다. 돈의 변동 이력은 원장(ledger)에 남긴다.
 
 ## 3. 테이블
 
@@ -30,8 +35,9 @@
 | id | BIGINT | PK, auto increment | |
 | username | VARCHAR(10) | NOT NULL, `uk_member_username` | 입력한 그대로 저장. collation `utf8mb4_0900_ai_ci`를 DDL에 명시 |
 | nickname | VARCHAR(10) | NOT NULL | 중복 허용, 대소문자 유지 |
-| password_hash | VARCHAR(255) | NOT NULL | BCrypt 해시(60자). 알고리즘을 바꿀 때를 대비해 여유 있게 잡는다 |
+| password | VARCHAR(255) | NOT NULL | 평문이 아니라 BCrypt 해시(60자)를 저장한다. 알고리즘을 바꿀 때를 대비해 여유 있게 잡는다 |
 | created_at | DATETIME(6) | NOT NULL | UTC |
+| updated_at | DATETIME(6) | NOT NULL | UTC |
 
 - username의 UNIQUE 제약은 **동시 가입을 막는 최종 방어선**이다. 조회 후 insert(`existsBy...`)만으로는 경쟁 조건을 막을 수 없다.
 - username은 정규화하지 않고 **입력한 그대로 저장**한다(`Alice`는 `Alice`로 저장해서 표시). 대소문자 중복 판정은 DB에 맡긴다.
@@ -208,11 +214,12 @@ Content-Type: application/problem+json
 ## 9. 작업 목록
 
 - [x] `spring-boot-starter-validation` 의존성 추가
-- [ ] Flyway 설정
-  - [ ] `spring-boot-starter-flyway`, `flyway-mysql` 의존성 추가
-  - [ ] `application.yml`에 `ddl-auto: validate`, `hibernate.jdbc.time_zone: UTC` 추가
-- [ ] `V1__create_member_and_account.sql`: `member`, `account`, `account_number_sequence` 테이블, 제약 이름 지정, 순번 테이블 초기 행 insert
+- [x] Flyway 설정
+  - [x] `spring-boot-starter-flyway`, `flyway-mysql` 의존성 추가
+  - [x] `application.yml`에 `ddl-auto: validate`, `hibernate.jdbc.time_zone: UTC` 추가
+- [x] `V1__create_member_and_account.sql`: `member`, `account`, `account_number_sequence` 테이블, 제약 이름 지정, 순번 테이블 초기 행 insert
 - [ ] 계좌번호 순번 발급기 (`AccountNumberGenerator` 순번 테이블 구현체)
+- [ ] `BaseTimeEntity` (`@MappedSuperclass`, `@CreatedDate`, `@LastModifiedDate`) + JPA Auditing 설정
 - [ ] `Member` 엔티티 + Repository 테스트
 - [ ] `Account` 엔티티 매핑 (Money 매핑 방식 결정)
 - [ ] 회원가입 요청 DTO + 입력 검증 테스트

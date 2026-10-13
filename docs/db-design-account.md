@@ -19,13 +19,14 @@
 |---|---|---|
 | `id` | `BIGINT` | PK, auto increment (내부 식별자) |
 | `member_id` | `BIGINT` | NOT NULL, `uk_account_member_id` |
-| `account_number` | `CHAR(12)` | NOT NULL, `uk_account_account_number` (외부 노출 식별자) |
+| `number` | `CHAR(12)` | NOT NULL, `uk_account_number` (계좌번호, 외부 노출 식별자) |
 | `balance` | `BIGINT` | NOT NULL, DEFAULT 0 (예수금) |
 | `hold_amount` | `BIGINT` | NOT NULL, DEFAULT 0 (주문으로 묶인 금액) |
 | `created_at` | `DATETIME(6)` | NOT NULL |
+| `updated_at` | `DATETIME(6)` | NOT NULL |
 
 - `member_id` UNIQUE 제약은 회원당 계좌 1개 정책을 DB가 보장하게 하는 장치다. 회원 ID로 계좌를 찾을 때 쓸 인덱스 역할도 한다. 나중에 1인 N계좌로 확장하면 UNIQUE를 제거한다.
-- 다른 테이블이 계좌를 참조할 때(FK)는 `id`를 쓴다. 외부(API)에는 `account_number`만 노출한다.
+- 다른 테이블이 계좌를 참조할 때(FK)는 `id`를 쓴다. 외부(API)에는 계좌번호(`number`)만 노출한다.
 
 ### account_number_sequence
 
