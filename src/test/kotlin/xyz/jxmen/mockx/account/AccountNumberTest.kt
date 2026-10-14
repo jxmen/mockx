@@ -18,7 +18,7 @@ class AccountNumberTest :
                 ) { (sequence, expected) ->
                     val result = AccountNumber.issue(AccountType.Brokerage, sequence)
 
-                    result.value shouldBe expected
+                    result.number shouldBe expected
                 }
             }
             context("범위를 벗어난 순번이 주어지면") {

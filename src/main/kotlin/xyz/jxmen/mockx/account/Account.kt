@@ -1,18 +1,39 @@
 package xyz.jxmen.mockx.account
 
-enum class AccountType(
-    val prefixNum: String,
-) {
-    Brokerage("100"), // 위탁
-}
+import jakarta.persistence.AttributeOverride
+import jakarta.persistence.Column
+import jakarta.persistence.Embedded
+import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
+import jakarta.persistence.Table
+import jakarta.persistence.UniqueConstraint
+import xyz.jxmen.mockx.common.jpa.BaseTimeEntity
 
+@Entity
+@Table(
+    name = "account",
+    uniqueConstraints =
+        [
+            UniqueConstraint(name = "uk_account_member_id", columnNames = ["member_id"]),
+            UniqueConstraint(name = "uk_account_number", columnNames = ["number"]),
+        ],
+)
 class Account(
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    val id: Long = 0L,
+    @Column(name = "member_id", nullable = false)
     val memberId: Long,
+    @Embedded
     val number: AccountNumber,
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false, length = 20)
     val type: AccountType,
-) {
-    val id: Long = 0L
-
+): BaseTimeEntity() {
     companion object {
         fun create(
             memberId: Long,
@@ -28,14 +49,18 @@ class Account(
     /**
      * 예수금.
      */
+    @Embedded
+    @AttributeOverride(name = "amount", column = Column(name = "balance"))
     var balance: Money = Money()
-        private set
+        protected set
 
     /**
      * 매수 주문을 넣어 묶인 돈. 예수금보다 클 수 없다.
      */
+    @Embedded
+    @AttributeOverride(name = "amount", column = Column(name = "hold_amount"))
     var holdAmount: Money = Money()
-        private set
+        protected set
 
     /**
      * 입금

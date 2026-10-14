@@ -1,6 +1,6 @@
 # 계좌(Account) 설계
 
-> 최종 수정: 2026-10-13. 회원가입 흐름과 테이블 공통 규칙(단수형 이름, `DATETIME(6)` UTC, 제약 이름, Flyway)은 [`db-design-member.md`](db-design-member.md)를 참고한다.
+> 최종 수정: 2026-10-14. 회원가입 흐름과 테이블 공통 규칙(단수형 이름, `DATETIME(6)` UTC, 제약 이름, Flyway)은 [`db-design-member.md`](db-design-member.md)를 참고한다.
 
 ## 1. 정책
 
@@ -22,11 +22,16 @@
 | `number` | `CHAR(12)` | NOT NULL, `uk_account_number` (계좌번호, 외부 노출 식별자) |
 | `balance` | `BIGINT` | NOT NULL, DEFAULT 0 (예수금) |
 | `hold_amount` | `BIGINT` | NOT NULL, DEFAULT 0 (주문으로 묶인 금액) |
+| `type` | `VARCHAR(20)` | NOT NULL (계좌 상품 구분, `AccountType` enum 이름. 예: `Brokerage`) |
 | `created_at` | `DATETIME(6)` | NOT NULL |
 | `updated_at` | `DATETIME(6)` | NOT NULL |
 
 - `member_id` UNIQUE 제약은 회원당 계좌 1개 정책을 DB가 보장하게 하는 장치다. 회원 ID로 계좌를 찾을 때 쓸 인덱스 역할도 한다. 나중에 1인 N계좌로 확장하면 UNIQUE를 제거한다.
 - 다른 테이블이 계좌를 참조할 때(FK)는 `id`를 쓴다. 외부(API)에는 계좌번호(`number`)만 노출한다.
+- `type`은 계좌번호 앞 3자리(상품코드)로도 알 수 있지만, 타입별 조회를 `LIKE '100%'`로 하지 않도록 컬럼을 따로 둔다.
+  - `@Enumerated(EnumType.STRING)`으로 enum 이름을 저장한다. `ORDINAL`은 상수 순서가 바뀌면 기존 데이터의 의미가 달라지므로 쓰지 않는다.
+  - enum 상수 이름을 바꾸면 저장된 값도 마이그레이션해야 한다. 저장값을 이름과 분리해야 할 때는 `AttributeConverter`로 상품코드(`prefixNum`)를 저장하는 방식으로 바꾼다.
+  - MySQL 네이티브 `ENUM` 타입은 쓰지 않는다. 값을 추가할 때마다 `ALTER TABLE`이 필요하다. Hibernate 6.2+는 MySQL에서 `EnumType.STRING`을 `ENUM` 타입으로 기대하므로, `VARCHAR` 컬럼과 validate 결과가 어긋나면 `@JdbcTypeCode(SqlTypes.VARCHAR)`로 맞춘다.
 
 ### account_number_sequence
 
@@ -69,6 +74,7 @@ SELECT LAST_INSERT_ID();
 - [x] `AccountNumber.issue()` (0 패딩, 8자리 초과 검사) + 테스트
 - [x] `Account` 도메인 로직 (deposit, hold, release) + 테스트
 - [ ] `AccountNumberGenerator` 순번 테이블 구현체
+- [x] `account.type` 컬럼 추가 (`VARCHAR(20)`, `EnumType.STRING`)
 - [ ] `Account` 엔티티 매핑 (Money 매핑 방식 결정: `@Embedded` + `@AttributeOverride` 또는 `AttributeConverter`)
 
 ### 테스트 시나리오 (순번 발급기)

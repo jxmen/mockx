@@ -1,5 +1,8 @@
 package xyz.jxmen.mockx.account
 
+import jakarta.persistence.Embeddable
+
+@Embeddable
 data class Money(
     val amount: Long = 0L,
 ) {

@@ -1,16 +1,16 @@
 CREATE TABLE account
 (
     id          BIGINT AUTO_INCREMENT PRIMARY KEY,
-    member_id   BIGINT   NOT NULL,
-    number      CHAR(12) NOT NULL,
-    balance     BIGINT   NOT NULL DEFAULT 0,
-    hold_amount BIGINT   NOT NULL DEFAULT 0,
+    member_id   BIGINT      NOT NULL,
+    number      CHAR(12)    NOT NULL,
+    balance     BIGINT      NOT NULL DEFAULT 0,
+    hold_amount BIGINT      NOT NULL DEFAULT 0,
+    type        VARCHAR(20) NOT NULL,
     created_at  DATETIME(6) NOT NULL,
     updated_at  DATETIME(6) NOT NULL,
 
     CONSTRAINT uk_account_member_id UNIQUE (member_id),
-    CONSTRAINT uk_account_number UNIQUE (number),
-    KEY idx_account_member_id (member_id)
+    CONSTRAINT uk_account_number UNIQUE (number)
 );
 
 CREATE TABLE account_number_sequence
