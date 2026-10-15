@@ -60,6 +60,27 @@
 | password | 비밀번호 |
 | passwordConfirm | 비밀번호 확인. 저장하지 않고 서버에서 일치 여부만 검증한다 |
 
+- 정의되지 않은 필드(예: `"role": "ADMIN"`)는 무시한다(Spring Boot 기본 동작).
+
+### 응답
+
+```http
+HTTP/1.1 201 Created
+Location: /api/members/1
+Content-Type: application/json
+
+{
+  "memberId": 1,
+  "username": "Alice",
+  "nickname": "앨리스",
+  "accountNumber": "100000000016"
+}
+```
+
+- 본문에는 위 4개 필드만 넣는다. password와 `createdAt`은 넣지 않는다.
+- `username`은 입력한 대소문자 그대로 응답한다.
+- `accountNumber`는 하이픈 없이 숫자 12자리로 준다. 하이픈은 프론트가 표시할 때 붙인다.
+
 ### 입력 규칙
 
 | 필드 | 길이 | 허용 문자 | 공백 | 대소문자 |
@@ -83,11 +104,11 @@
 - 의존성은 `spring-boot-starter-validation`이다. 컨트롤러 파라미터에 `@Valid @RequestBody`를 붙인다.
 - 길이는 `@Size`, 허용 문자는 `@Pattern`(정규식)으로 표현한다. 허용 문자에 surrogate pair가 없으므로 `@Size`의 UTF-16 길이와 글자 수가 같다.
 - `build.gradle.kts`에 `-Xannotation-default-target=param-property`가 설정돼 있어 생성자 프로퍼티에 `@field:`를 붙이지 않아도 필드에 적용된다.
-- 검증에 실패하면 `MethodArgumentNotValidException`이 발생한다. 이 예외를 400 `invalid_input`으로 변환하고, `FieldError.field`를 응답의 `field`에 넣는다.
+- 검증에 실패하면 `MethodArgumentNotValidException`이 발생한다. 이 예외를 400 `INVALID_INPUT`으로 변환하고, `FieldError`마다 `field`와 메시지를 응답의 `errors` 배열에 넣는다.
 - 형식 검증은 DTO에서 하고, 대소문자 중복 판정은 DB collation에서 한다. 애플리케이션은 username을 변환하지 않는다.
 
 구현할 때 고민할 것:
-- 필드 자체가 빠진 요청(`{}`)은 Kotlin non-null 타입이면 검증 전에 Jackson 역직렬화에서 실패한다(`HttpMessageNotReadableException`). 이 경우도 400 `invalid_input`으로 응답할 방법을 정해야 한다.
+- 필드 자체가 빠진 요청(`{}`)은 Kotlin non-null 타입이면 검증 전에 Jackson 역직렬화에서 실패한다(`HttpMessageNotReadableException`). 이 경우도 400 `INVALID_INPUT`으로 응답할 방법을 정해야 한다.
 - password와 passwordConfirm 일치 검사는 필드 하나로는 표현할 수 없다. 클래스 수준 커스텀 제약을 만들지, 서비스에서 검사할지 정한다.
 - 값 객체를 쓰지 않으므로 형식 규칙이 DTO에만 있다. DTO를 거치지 않고 Member를 만드는 경로에서는 형식이 검증되지 않는다(트레이드오프).
 
@@ -102,6 +123,12 @@
 5. 계좌번호 발급 (순번 테이블) 후 account 저장
 [커밋] — 4~5 중 하나라도 실패하면 전체 롤백
 ```
+
+### 클래스 구성
+
+- `member.SignupService`: 회원가입 유스케이스. 트랜잭션 경계를 가진다.
+- `account.AccountOpener`: 계좌번호 발급 → `Account.create` → 저장을 맡는다. 사용자가 직접 호출하는 기능이 아니라 가입 과정의 부품이다. `SignupService`는 `AccountRepository`나 `AccountNumberGenerator`를 직접 쓰지 않고 이것만 호출한다.
+- 입력: 지금은 웹 요청 DTO(`SignupRequest`)를 서비스에 그대로 넘긴다. 다른 진입점(관리자 API, 배치 등)이 생기거나 웹 검증과 서비스 입력이 달라지면 `SignupCommand`로 분리한다.
 
 ## 5. 인증
 
@@ -147,7 +174,7 @@ Content-Type: application/problem+json
   "status": 409,
   "detail": "이미 사용 중인 username입니다.",
   "instance": "/api/members",
-  "code": "username_duplicated",
+  "code": "USERNAME_DUPLICATED",
   "field": "username"
 }
 ```
@@ -158,11 +185,32 @@ Content-Type: application/problem+json
 
 | 상황 | 상태 코드 | code | field |
 |---|---|---|---|
-| 입력 형식 오류 | 400 | `invalid_input` | 해당 필드 |
-| password와 passwordConfirm 불일치 | 400 | `password_not_matched` | `passwordConfirm` |
-| `X-Member-Id` 헤더 없음, 형식 오류 | 401 | `unauthenticated` | - |
-| 계좌가 없거나 남의 계좌 | 404 | `account_not_found` | - |
-| username 중복 (대소문자만 다른 경우 포함) | 409 | `username_duplicated` | `username` |
+| 입력 형식 오류, 필드 누락, `null` | 400 | `INVALID_INPUT` | 없음. 대신 `errors` 배열 |
+| JSON 문법 오류 | 400 | `INVALID_INPUT` | 없음 (`errors`도 없음) |
+| password와 passwordConfirm 불일치 | 400 | `PASSWORD_NOT_MATCHED` | `passwordConfirm` |
+| `X-Member-Id` 헤더 없음, 형식 오류 | 401 | `UNAUTHENTICATED` | - |
+| 계좌가 없거나 남의 계좌 | 404 | `ACCOUNT_NOT_FOUND` | - |
+| username 중복 (대소문자만 다른 경우 포함) | 409 | `USERNAME_DUPLICATED` | `username` |
+
+`INVALID_INPUT`은 틀린 필드를 모두 `errors` 배열로 준다. 폼에서 필드별로 에러를 표시하기 위해서다.
+
+```json
+{
+  "type": "about:blank",
+  "title": "Bad Request",
+  "status": 400,
+  "detail": "입력값이 올바르지 않습니다.",
+  "instance": "/api/members",
+  "code": "INVALID_INPUT",
+  "errors": [
+    { "field": "username", "detail": "2~10자여야 합니다." },
+    { "field": "nickname", "detail": "2~10자여야 합니다." }
+  ]
+}
+```
+
+- 형식 오류와 비밀번호 불일치가 함께 있으면 `INVALID_INPUT`을 응답한다. 형식 검증이 먼저다.
+- 필드 누락과 `null`은 Jackson 역직렬화 단계에서 실패하므로, 빠진 필드 하나만 `errors`에 담길 수 있다.
 
 구현할 때 고민할 것:
 - 400은 `MethodArgumentNotValidException`(검증 실패)과 `HttpMessageNotReadableException`(JSON 형식 오류, 필드 누락)에서 온다. `IllegalArgumentException`을 전역에서 400으로 바꾸지 않는다. 내부 버그까지 400이 되기 때문이다.
@@ -194,13 +242,13 @@ Content-Type: application/problem+json
 - username: 길이 경계(1, 2, 10, 11자), `__` 허용, 공백 거절, 한글·특수문자·이모지·전각 문자·유니코드 숫자(`٣`) 거절
 - nickname: 길이 경계, 공백 거절, 대소문자 유지, 자모 단독·특수문자·이모지·한자·NFD 거절
 - password: 길이 경계(3, 4, 20, 21자), 공백으로만 된 값 허용, 앞뒤 공백 유지, 한글·이모지·전각 문자·탭·개행 거절
-- 필드가 빠진 요청은 400 `invalid_input`
+- 필드가 빠진 요청은 400 `INVALID_INPUT`
 - username은 입력한 대소문자 그대로 저장된다 (도메인 테스트)
 
 ### 회원가입 서비스 / API (예정)
 
 - 가입하면 Member와 위탁계좌 1개가 생성되고, 비밀번호는 해시로 저장된다
-- password와 passwordConfirm이 다르면 400 `password_not_matched`
+- password와 passwordConfirm이 다르면 400 `PASSWORD_NOT_MATCHED`
 - 이미 있는 username이면 409. `Alice`가 있을 때 `alice`로 가입해도 409 (collation 검증이므로 Testcontainers MySQL로 테스트)
 - nickname 중복은 허용
 - 계좌 생성이 실패하면 Member도 롤백

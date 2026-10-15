@@ -55,3 +55,7 @@
 
 - 답변, 코드 주석, 커밋 메시지는 한국어로 작성한다.
 - 테스트 메서드명은 백틱 한국어 문장으로 쓴다. (예: `` `hello 요청 시 인사 메시지를 반환한다` ``)
+- 서비스 클래스는 유스케이스 하나당 하나씩 만들고 `{동작}Service`로 이름 짓는다. (예: `SignupService`, `PlaceOrderService`) 포트·어댑터는 나누지 않으므로 `UseCase` 접미사는 쓰지 않는다.
+- 사용자가 직접 호출하지 않고 다른 서비스가 쓰는 부품은 `-er` 형태로 짓는다. (예: `AccountOpener`)
+- 서비스 입력은 당분간 웹 요청 DTO를 그대로 받는다. 진입점이 여러 개가 되면 `{동작}Command`로 분리한다.
+- 에러 응답(4xx, 5xx)은 RFC 9457 Problem Details 형식을 쓰고, 확장 필드 `code`는 대문자 스네이크 케이스로 쓴다. (예: `INVALID_INPUT`, `USERNAME_DUPLICATED`)
