@@ -25,6 +25,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-flyway")
     implementation("org.flywaydb:flyway-mysql")
+    implementation("org.springframework.security:spring-security-crypto") // BCrypt 해시만 사용. 시큐리티 자동 설정은 켜지 않는다
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("tools.jackson.module:jackson-module-kotlin")
     runtimeOnly("com.mysql:mysql-connector-j")

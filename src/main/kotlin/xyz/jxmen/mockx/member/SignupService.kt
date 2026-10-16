@@ -1,40 +1,43 @@
 package xyz.jxmen.mockx.member
 
+import org.hibernate.exception.ConstraintViolationException
+import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import org.springframework.transaction.support.TransactionTemplate
 import xyz.jxmen.mockx.account.AccountOpener
-
-class SignupRequest(
-    val nickname: String,
-    val username: String,
-    val password: String,
-    val passwordConfirm: String,
-)
-
-class SignupResult
 
 @Service
 class SignupService(
     private val memberRepository: MemberRepository,
-    private val passwordEncoder: IPasswordEncoder,
+    private val passwordEncoder: PasswordEncoder,
     private val accountOpener: AccountOpener,
+    private val transactionTemplate: TransactionTemplate,
 ) {
-    fun signup(request: SignupRequest): SignupResult {
-        // TODO: 해시를 먼저 하고, transactionTemplate로 트랜잭션 범위 지정
+    fun signup(request: SignupRequest): SignupResponse {
         val hashedPassword = HashedPassword.withEncoder(request.password, passwordEncoder)
 
-        // TODO: transactionTemplate
-        // TODO: Propagation.MANDATORY
+        return transactionTemplate.execute {
+            val member =
+                Member.create(
+                    username = request.username,
+                    nickname = request.nickname,
+                    hashedPassword = hashedPassword,
+                )
+            val savedMember =
+                try {
+                    memberRepository.save(member)
+                } catch (e: DataIntegrityViolationException) {
+                    val cve = e.cause as? ConstraintViolationException
+                    if (cve?.constraintName == "member.uk_member_username") {
+                        throw DuplicateUsernameException(request.username)
+                    } else {
+                        throw e
+                    }
+                }
+            val account = accountOpener.open(savedMember.id)
 
-        // TODO: 중복된 username 비허용 - USERNAME_DUPLICATED
-        val member =
-            Member.create(
-                username = request.username,
-                nickname = request.nickname,
-                hashedPassword = hashedPassword,
-            )
-        val saved = memberRepository.save(member)
-        accountOpener.open(saved.id)
-
-        TODO("Not yet implemented")
+            SignupResponse.of(savedMember, account)
+        }
     }
 }

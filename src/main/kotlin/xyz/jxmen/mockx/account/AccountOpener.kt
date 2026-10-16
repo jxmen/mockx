@@ -4,14 +4,13 @@ import org.springframework.stereotype.Service
 
 @Service
 class AccountOpener(
-    private val accountNumberGenerator: AccountNumberGenerator,
+    private val accountNumberRepository: AccountNumberRepository,
     private val accountRepository: AccountRepository,
 ) {
     fun open(memberId: Long): Account {
-        val accountNumber = accountNumberGenerator.generate()
+        val accountNumber = accountNumberRepository.generateAndIncrease()
         val account = Account.create(memberId = memberId, number = accountNumber)
 
-        TODO()
         return accountRepository.save(account)
     }
 }

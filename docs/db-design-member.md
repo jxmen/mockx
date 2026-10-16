@@ -127,7 +127,7 @@ Content-Type: application/json
 ### 클래스 구성
 
 - `member.SignupService`: 회원가입 유스케이스. 트랜잭션 경계를 가진다.
-- `account.AccountOpener`: 계좌번호 발급 → `Account.create` → 저장을 맡는다. 사용자가 직접 호출하는 기능이 아니라 가입 과정의 부품이다. `SignupService`는 `AccountRepository`나 `AccountNumberGenerator`를 직접 쓰지 않고 이것만 호출한다.
+- `account.AccountOpener`: 계좌번호 발급 → `Account.create` → 저장을 맡는다. 사용자가 직접 호출하는 기능이 아니라 가입 과정의 부품이다. `SignupService`는 `AccountRepository`나 `AccountNumberRepository`를 직접 쓰지 않고 이것만 호출한다.
 - 입력: 지금은 웹 요청 DTO(`SignupRequest`)를 서비스에 그대로 넘긴다. 다른 진입점(관리자 API, 배치 등)이 생기거나 웹 검증과 서비스 입력이 달라지면 `SignupCommand`로 분리한다.
 
 ## 5. 인증
@@ -266,7 +266,7 @@ Content-Type: application/problem+json
   - [x] `spring-boot-starter-flyway`, `flyway-mysql` 의존성 추가
   - [x] `application.yml`에 `ddl-auto: validate`, `hibernate.jdbc.time_zone: UTC` 추가
 - [x] `V1__create_member_and_account.sql`: `member`, `account`, `account_number_sequence` 테이블, 제약 이름 지정, 순번 테이블 초기 행 insert
-- [ ] 계좌번호 순번 발급기 (`AccountNumberGenerator` 순번 테이블 구현체)
+- [ ] 계좌번호 순번 발급기 (`AccountNumberRepository` 순번 테이블 구현체)
 - [ ] `BaseTimeEntity` (`@MappedSuperclass`, `@CreatedDate`, `@LastModifiedDate`) + JPA Auditing 설정
 - [ ] `Member` 엔티티 + Repository 테스트
 - [ ] `Account` 엔티티 매핑 (Money 매핑 방식 결정)

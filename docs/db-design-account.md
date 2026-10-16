@@ -73,7 +73,7 @@ SELECT LAST_INSERT_ID();
 - [x] `Luhn` 검증숫자 계산 + 테스트
 - [x] `AccountNumber.issue()` (0 패딩, 8자리 초과 검사) + 테스트
 - [x] `Account` 도메인 로직 (deposit, hold, release) + 테스트
-- [ ] `AccountNumberGenerator` 순번 테이블 구현체
+- [ ] `AccountNumberRepository` 순번 테이블 구현체
 - [x] `account.type` 컬럼 추가 (`VARCHAR(20)`, `EnumType.STRING`)
 - [ ] `Account` 엔티티 매핑 (Money 매핑 방식 결정: `@Embedded` + `@AttributeOverride` 또는 `AttributeConverter`)
 

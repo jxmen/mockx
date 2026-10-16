@@ -2,6 +2,7 @@ package xyz.jxmen.mockx.member
 
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
+import org.springframework.security.crypto.password.PasswordEncoder
 
 @ConsistentCopyVisibility
 @Embeddable
@@ -12,8 +13,13 @@ data class HashedPassword private constructor(
     companion object {
         fun withEncoder(
             raw: String,
-            encoder: IPasswordEncoder,
-        ): HashedPassword = HashedPassword(encoder.encode(raw))
+            encoder: PasswordEncoder,
+        ): HashedPassword {
+            val encoded = encoder.encode(raw)
+            checkNotNull(encoded)
+
+            return HashedPassword(encoded)
+        }
     }
 
     fun value() = value

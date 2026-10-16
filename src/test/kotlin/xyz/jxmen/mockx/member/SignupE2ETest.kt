@@ -3,8 +3,8 @@ package xyz.jxmen.mockx.member
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
-import io.kotest.matchers.longs.shouldBePositive
 import io.kotest.matchers.collections.shouldNotContain
+import io.kotest.matchers.longs.shouldBePositive
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -87,10 +87,20 @@ class SignupE2ETest(
         fun ApiResponse.errorFields(): List<String> =
             (body["errors"].shouldNotBeNull() as List<Map<String, Any?>>).map { it["field"] as String }
 
+        fun setSequence(value: Long) {
+            jdbcTemplate.update("UPDATE account_number_sequence SET next_value = ? WHERE product_code = '100'", value)
+        }
+
+        fun currentSequence(): Long =
+            jdbcTemplate.queryForObject(
+                "SELECT next_value FROM account_number_sequence WHERE product_code = '100'",
+                Long::class.java,
+            )!!
+
         beforeEach {
             jdbcTemplate.execute("TRUNCATE TABLE member")
             jdbcTemplate.execute("TRUNCATE TABLE account")
-            jdbcTemplate.update("UPDATE account_number_sequence SET next_value = 0 WHERE product_code = '100'")
+            setSequence(0)
         }
 
         describe("POST /api/members") {
@@ -221,6 +231,35 @@ class SignupE2ETest(
 
                     response.shouldBeProblem(400, "INVALID_INPUT")
                     response.errorFields() shouldContain "username"
+                }
+            }
+
+            // 회원 저장, 순번 발급, 계좌 저장은 한 트랜잭션이다. 계좌 개설 단계에서 실패하면 셋 다 되돌아가야 한다.
+            // 실패는 순번을 8자리 상한(99,999,999)에 맞춰 두고, 다음 순번이 AccountNumber.issue의 검증에 걸리게 해서 일으킨다
+            context("회원 저장 뒤 계좌 개설이 실패하면") {
+                it("회원과 계좌가 저장되지 않는다") {
+                    setSequence(99_999_999)
+
+                    signup(validRequest()).status shouldBe 500
+
+                    countRows("member") shouldBe 0
+                    countRows("account") shouldBe 0
+                }
+                it("계좌번호 순번도 증가하지 않는다") {
+                    setSequence(99_999_999)
+
+                    signup(validRequest()).status shouldBe 500
+
+                    currentSequence() shouldBe 99_999_999
+                }
+                it("실패한 username으로 다시 가입할 수 있다") {
+                    setSequence(99_999_999)
+                    signup(validRequest(username = "Alice")).status shouldBe 500
+                    setSequence(0)
+
+                    val response = signup(validRequest(username = "Alice"))
+
+                    response.status shouldBe 201
                 }
             }
 
