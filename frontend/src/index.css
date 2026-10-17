@@ -356,6 +356,14 @@ a {
   letter-spacing: 0.02em;
 }
 
+/* 빈 상태, 불러오는 중 */
+.empty {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-muted);
+}
+
 /* 개발용 */
 .dev-toggle {
   display: flex;

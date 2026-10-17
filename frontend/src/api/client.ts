@@ -39,12 +39,18 @@ export class NetworkError extends Error {
 type RequestOptions = {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   body?: unknown
+  /** 개발용 인증 스텁. 값이 있으면 X-Member-Id 헤더로 보낸다. docs/db-design-member.md 5장 */
+  memberId?: string | null
+  signal?: AbortSignal
 }
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const headers: Record<string, string> = { Accept: 'application/json, application/problem+json' }
   if (options.body !== undefined) {
     headers['Content-Type'] = 'application/json'
+  }
+  if (options.memberId) {
+    headers['X-Member-Id'] = options.memberId
   }
 
   let response: Response
@@ -53,8 +59,13 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
       method: options.method ?? 'GET',
       headers,
       body: options.body === undefined ? undefined : JSON.stringify(options.body),
+      signal: options.signal,
     })
   } catch (cause) {
+    // 호출한 쪽이 취소한 요청은 네트워크 오류가 아니므로 그대로 던진다
+    if (options.signal?.aborted) {
+      throw cause
+    }
     throw new NetworkError({ cause })
   }
 

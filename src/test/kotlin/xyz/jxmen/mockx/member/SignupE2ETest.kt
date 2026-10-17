@@ -8,12 +8,10 @@ import io.kotest.matchers.longs.shouldBePositive
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.string.shouldEndWith
 import io.kotest.matchers.string.shouldStartWith
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
-import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.web.client.RestClient
@@ -105,15 +103,13 @@ class SignupE2ETest(
 
         describe("POST /api/members") {
             context("올바른 요청이면") {
-                it("201과 Location 헤더, 회원·계좌 정보를 반환한다") {
+                it("201과 회원·계좌 정보를 반환하고, Location 헤더는 없다") {
                     val response = signup(validRequest(username = "Alice", nickname = "앨리스"))
 
                     response.status shouldBe 201
-                    val memberId = (response.body["memberId"] as Number).toLong()
-                    memberId.shouldBePositive()
-                    response.headers.location
-                        .shouldNotBeNull()
-                        .toString() shouldEndWith "/api/members/$memberId"
+                    // 가리킬 조회 API(GET /api/members/{id})가 없으므로 Location을 주지 않는다
+                    response.headers.location shouldBe null
+                    (response.body["memberId"] as Number).toLong().shouldBePositive()
                     response.body["username"] shouldBe "Alice" // 입력한 대소문자 그대로
                     response.body["nickname"] shouldBe "앨리스"
                     // 첫 순번(1)으로 발급된 위탁계좌 번호. 하이픈 없이 숫자 12자리
@@ -274,9 +270,3 @@ class SignupE2ETest(
             }
         }
     })
-
-data class ApiResponse(
-    val status: Int,
-    val headers: HttpHeaders,
-    val body: Map<String, Any?>,
-)

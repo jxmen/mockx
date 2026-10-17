@@ -66,7 +66,6 @@
 
 ```http
 HTTP/1.1 201 Created
-Location: /api/members/1
 Content-Type: application/json
 
 {
@@ -77,6 +76,7 @@ Content-Type: application/json
 }
 ```
 
+- `Location` 헤더는 주지 않는다. 가리킬 회원 단건 조회 API(`GET /api/members/{id}`)가 없다. 가입한 본인의 정보는 `GET /api/members/me`로 조회한다.
 - 본문에는 위 4개 필드만 넣는다. password와 `createdAt`은 넣지 않는다.
 - `username`은 입력한 대소문자 그대로 응답한다.
 - `accountNumber`는 하이픈 없이 숫자 12자리로 준다. 하이픈은 프론트가 표시할 때 붙인다.

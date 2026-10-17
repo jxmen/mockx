@@ -9,6 +9,8 @@ data class AccountNumber private constructor(
     @Column(name = "number", nullable = false, length = 12)
     val number: String,
 ) {
+    fun value(): String = this.number
+
     init {
         require(number.length == 12) { "계좌번호는 12자리여야 합니다." }
         require(number.all { it in '0'..'9' }) { "계좌번호는 모두 숫자여야 합니다." }

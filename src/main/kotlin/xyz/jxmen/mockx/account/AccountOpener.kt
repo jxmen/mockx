@@ -1,8 +1,8 @@
 package xyz.jxmen.mockx.account
 
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
 
-@Service
+@Component
 class AccountOpener(
     private val accountNumberRepository: AccountNumberRepository,
     private val accountRepository: AccountRepository,
