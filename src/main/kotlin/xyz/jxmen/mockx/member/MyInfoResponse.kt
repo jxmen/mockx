@@ -6,7 +6,9 @@ import xyz.jxmen.mockx.account.AccountType
 data class AccountInfo(
     val id: Long,
     val type: AccountType,
-    val number: String
+    val number: String,
+    val balance: Long,
+    val holdAmount: Long,
 )
 
 data class MyInfoResponse(
@@ -24,7 +26,9 @@ data class MyInfoResponse(
                 accounts = listOf(AccountInfo(
                     id = account.id,
                     type = account.type,
-                    number = account.number.value()
+                    number = account.number.value(),
+                    balance = account.balance.value(),
+                    holdAmount = account.holdAmount.value()
                 ))
             )
         }

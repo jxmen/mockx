@@ -13,4 +13,5 @@ data class Money(
     operator fun compareTo(other: Money): Int = amount.compareTo(other.amount)
 
     fun isPositive(): Boolean = this.amount > 0L
+    fun value(): Long = amount
 }

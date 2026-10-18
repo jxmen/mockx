@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { getMyInfo, type AccountType, type MyInfoResponse } from '../../api/members'
 import { useMemberId } from '../../auth/memberIdContext'
 import { formatAccountNumber } from '../../lib/accountNumber'
+import { formatWon } from '../../lib/money'
 import { ErrorIcon } from '../signup/FormField'
 import { toMyInfoErrorMessage } from './myInfoError'
 
@@ -75,10 +76,20 @@ function MyInfoSummary({ data }: { data: MyInfoResponse }) {
         <dd className="mono">{data.memberId}</dd>
       </div>
       {data.accounts.map((account) => (
-        <div key={account.id} className="summary__wide">
-          <dt>{ACCOUNT_TYPE_LABEL[account.type] ?? account.type}</dt>
-          <dd className="mono summary__account">{formatAccountNumber(account.number)}</dd>
-        </div>
+        <Fragment key={account.id}>
+          <div className="summary__wide">
+            <dt>{ACCOUNT_TYPE_LABEL[account.type] ?? account.type}</dt>
+            <dd className="mono summary__account">{formatAccountNumber(account.number)}</dd>
+          </div>
+          <div>
+            <dt>예수금</dt>
+            <dd className="mono summary__amount">{formatWon(account.balance)}</dd>
+          </div>
+          <div>
+            <dt>주문으로 묶인 금액</dt>
+            <dd className="mono summary__amount">{formatWon(account.holdAmount)}</dd>
+          </div>
+        </Fragment>
       ))}
     </dl>
   )

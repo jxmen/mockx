@@ -356,6 +356,10 @@ a {
   letter-spacing: 0.02em;
 }
 
+.summary__amount {
+  font-variant-numeric: tabular-nums;
+}
+
 /* 빈 상태, 불러오는 중 */
 .empty {
   margin: 0;

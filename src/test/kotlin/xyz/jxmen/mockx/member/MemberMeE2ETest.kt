@@ -112,15 +112,30 @@ class MemberMeE2ETest(
                     (account["id"] as Number).toLong() shouldBe accountIdOf(memberId)
                     account["type"] shouldBe "BROKERAGE" // AccountType enum 이름 그대로
                     account["number"] shouldBe "100000000016" // 첫 순번(1)으로 발급된 계좌번호. 하이픈 없는 12자리 문자열
+                    account["balance"] shouldBe 0 // 가입 직후 예수금은 0원. 객체({"amount": 0})가 아니라 숫자여야 한다
+                    account["holdAmount"] shouldBe 0
                 }
-                it("응답 본문에는 memberId, username, nickname, accounts만 있고, 계좌에는 id, type, number만 있다") {
+                it("계좌의 예수금과 묶인 금액을 숫자로 반환한다") {
+                    val memberId = signup(username = "Alice", nickname = "앨리스")
+                    // 입금·주문 API가 아직 없어서 DB 값을 직접 바꾼다. 응답이 0으로 고정돼 있지 않은지 확인하려는 것이다
+                    jdbcTemplate.update("UPDATE account SET balance = 30000, hold_amount = 5000 WHERE member_id = ?", memberId)
+
+                    val response = getMe(memberId.toString())
+
+                    response.status shouldBe 200
+                    val account = response.accounts().single()
+                    account["balance"] shouldBe 30_000
+                    account["holdAmount"] shouldBe 5_000
+                }
+                it("응답 본문에는 memberId, username, nickname, accounts만 있고, 계좌에는 id, type, number, balance, holdAmount만 있다") {
                     val memberId = signup(username = "Alice", nickname = "앨리스")
 
                     val response = getMe(memberId.toString())
 
                     response.status shouldBe 200
                     response.body.keys shouldContainExactlyInAnyOrder listOf("memberId", "username", "nickname", "accounts")
-                    response.accounts().single().keys shouldContainExactlyInAnyOrder listOf("id", "type", "number")
+                    response.accounts().single().keys shouldContainExactlyInAnyOrder
+                        listOf("id", "type", "number", "balance", "holdAmount")
                 }
             }
 
