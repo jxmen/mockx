@@ -22,7 +22,7 @@
 | `number` | `CHAR(12)` | NOT NULL, `uk_account_number` (계좌번호, 외부 노출 식별자) |
 | `balance` | `BIGINT` | NOT NULL, DEFAULT 0 (예수금) |
 | `hold_amount` | `BIGINT` | NOT NULL, DEFAULT 0 (주문으로 묶인 금액) |
-| `type` | `VARCHAR(20)` | NOT NULL (계좌 상품 구분, `AccountType` enum 이름. 예: `Brokerage`) |
+| `type` | `VARCHAR(20)` | NOT NULL (계좌 상품 구분, `AccountType` enum 이름. 예: `BROKERAGE`) |
 | `created_at` | `DATETIME(6)` | NOT NULL |
 | `updated_at` | `DATETIME(6)` | NOT NULL |
 

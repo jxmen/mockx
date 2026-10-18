@@ -42,7 +42,7 @@ class Account(
             Account(
                 memberId = memberId,
                 number = number,
-                type = AccountType.Brokerage,
+                type = AccountType.BROKERAGE,
             )
     }
 

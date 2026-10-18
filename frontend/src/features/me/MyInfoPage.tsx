@@ -11,7 +11,7 @@ type Result =
   | { memberId: string; status: 'error'; message: string }
 
 const ACCOUNT_TYPE_LABEL: Record<AccountType, string> = {
-  Brokerage: '위탁계좌',
+  BROKERAGE: '위탁계좌',
 }
 
 export function MyInfoPage() {

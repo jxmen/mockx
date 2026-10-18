@@ -12,7 +12,7 @@ class JdbcAccountNumberRepository(
 ): AccountNumberRepository {
 
     override fun generateAndIncrease(): AccountNumber {
-        val productCode = AccountType.Brokerage.prefixNum
+        val productCode = AccountType.BROKERAGE.prefixNum
 
         val updated =
             jdbcTemplate.update(
@@ -26,6 +26,6 @@ class JdbcAccountNumberRepository(
         check(updated == 1) {"상품코드 $productCode 순번 행이 없습니다" }
 
         val seq = jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Long::class.java)!!
-        return AccountNumber.issue(AccountType.Brokerage, seq)
+        return AccountNumber.issue(AccountType.BROKERAGE, seq)
     }
 }

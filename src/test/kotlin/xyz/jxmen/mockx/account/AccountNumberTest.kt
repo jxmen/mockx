@@ -16,7 +16,7 @@ class AccountNumberTest :
                     10000000L to "100100000007",
                     99999999L to "100999999996", // 최댓값
                 ) { (sequence, expected) ->
-                    val result = AccountNumber.issue(AccountType.Brokerage, sequence)
+                    val result = AccountNumber.issue(AccountType.BROKERAGE, sequence)
 
                     result.number shouldBe expected
                 }
@@ -29,7 +29,7 @@ class AccountNumberTest :
                     "9자리" to 100_000_000L,
                     "Long 최댓값" to Long.MAX_VALUE,
                 ) { (_, sequence) ->
-                    shouldThrow<IllegalArgumentException> { AccountNumber.issue(AccountType.Brokerage, sequence) }
+                    shouldThrow<IllegalArgumentException> { AccountNumber.issue(AccountType.BROKERAGE, sequence) }
                 }
             }
         }

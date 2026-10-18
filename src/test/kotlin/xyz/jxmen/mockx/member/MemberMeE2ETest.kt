@@ -110,7 +110,7 @@ class MemberMeE2ETest(
 
                     val account = response.accounts().single() // 가입하면 위탁계좌 하나가 개설된다
                     (account["id"] as Number).toLong() shouldBe accountIdOf(memberId)
-                    account["type"] shouldBe "Brokerage" // AccountType enum 이름 그대로
+                    account["type"] shouldBe "BROKERAGE" // AccountType enum 이름 그대로
                     account["number"] shouldBe "100000000016" // 첫 순번(1)으로 발급된 계좌번호. 하이픈 없는 12자리 문자열
                 }
                 it("응답 본문에는 memberId, username, nickname, accounts만 있고, 계좌에는 id, type, number만 있다") {

@@ -19,7 +19,7 @@ export function signup(request: SignupRequest): Promise<SignupResponse> {
   return apiRequest<SignupResponse>('/api/members', { method: 'POST', body: request })
 }
 
-export type AccountType = 'Brokerage'
+export type AccountType = 'BROKERAGE'
 
 export type AccountInfo = {
   id: number
