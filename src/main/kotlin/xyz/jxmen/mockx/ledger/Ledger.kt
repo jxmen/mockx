@@ -1,20 +1,48 @@
 package xyz.jxmen.mockx.ledger
 
+import jakarta.persistence.AttributeOverride
+import jakarta.persistence.Column
+import jakarta.persistence.Embedded
+import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.GeneratedValue
+import jakarta.persistence.GenerationType
+import jakarta.persistence.Id
+import jakarta.persistence.Index
+import jakarta.persistence.Table
 import xyz.jxmen.mockx.account.Money
+import xyz.jxmen.mockx.common.jpa.BaseTimeEntity
 
 /**
  * 원장. 돈의 모든 입출금 내역
  *
  * 현재는 단식부기로 운영한다.
  */
+@Entity
+@Table(
+    name = "ledger",
+    indexes = [
+        Index(name = "idx_ledger_account_id", columnList = "account_id"),
+    ],
+)
 class Ledger private constructor(
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0L,
-    val accountId: Long, // NOTE: 인덱스 필요
+    @Column(name = "account_id", nullable = false)
+    val accountId: Long,
+    @Embedded
+    @AttributeOverride(name = "amount", column = Column(name = "amount"))
     val amount: Money,
+    @Embedded
+    @AttributeOverride(name = "amount", column = Column(name = "balance_after"))
     val balanceAfter: Money,
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false, length = 20)
     val type: LedgerType,
     // NOTE: 체결 ID 추후 추가 필요
-) {
+) : BaseTimeEntity() {
     companion object {
         fun createDeposit(
             accountId: Long,
