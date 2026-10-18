@@ -145,7 +145,9 @@ curl -X POST localhost:8080/api/orders \
 
 - 컨트롤러는 헤더를 직접 읽지 않고 `@CurrentMember memberId: Long`으로 받는다. 값은 `HandlerMethodArgumentResolver`가 채우고, `WebMvcConfigurer.addArgumentResolvers()`로 등록한다.
 - 헤더가 없거나 숫자가 아니면 401을 준다.
-- 아무 숫자나 넣으면 그 회원이 되므로 `@Profile("local")`에서만 동작하게 한다.
+- 아무 숫자나 넣으면 그 회원이 되므로 prod가 아닐 때(`@Profile("!prod")`)만 동작하게 한다. `local`이 아니라 `!prod`로 거는 이유는 프로파일 없이 띄우는 `bootRun`과 E2E 테스트에서도 별도 설정 없이 쓰기 위해서다.
+- 리졸버 등록은 `WebConfig`와 분리한 전용 `@Configuration` 클래스에 두고, 클래스에 `@Profile`을 붙인다. `@Profile`은 빈 등록 조건이라 `addArgumentResolvers()` 같은 콜백 메서드에 달면 무시된다.
+- prod에서는 헤더 리졸버를 빼는 것만으로는 부족하다. `@CurrentMember`를 처리할 리졸버가 없으면 Spring이 단순 타입 파라미터를 `@RequestParam`처럼 해석해서(`RequestParamMethodArgumentResolver`의 기본 처리) `?memberId=1` 쿼리로 다른 회원이 될 수 있다. 그래서 prod(`@Profile("prod")`)에는 `@CurrentMember`를 받으면 항상 401을 던지는 리졸버를 등록한다(fail-closed). 세션 로그인이 생기면 이 리졸버를 세션용으로 교체한다.
 - 헤더에는 **Account ID가 아니라 Member ID**를 담는다. 인증 대상은 회원이고, 계좌는 회원이 소유한 리소스다.
 
 ### 이후: 세션 로그인 (배포 전 필수)
@@ -257,6 +259,10 @@ Content-Type: application/problem+json
 ### 인증 (예정)
 
 - `X-Member-Id` 헤더가 없거나 숫자가 아니면 401
+- prod 프로파일에서는 인증 수단이 없으므로 항상 401 (`MemberMeProdE2ETest`)
+  - 가입한 회원의 올바른 `X-Member-Id` 헤더로 요청해도 401
+  - `?memberId=` 쿼리로 요청해도 401 (리졸버가 없을 때 `@RequestParam`처럼 해석되는 우회 차단)
+  - 헤더도 쿼리도 없으면 400이 아니라 401
 - 남의 계좌에 접근하면 404이고, 없는 계좌에 접근한 경우와 응답이 같다
 
 ## 9. 작업 목록
@@ -266,11 +272,13 @@ Content-Type: application/problem+json
   - [x] `spring-boot-starter-flyway`, `flyway-mysql` 의존성 추가
   - [x] `application.yml`에 `ddl-auto: validate`, `hibernate.jdbc.time_zone: UTC` 추가
 - [x] `V1__create_member_and_account.sql`: `member`, `account`, `account_number_sequence` 테이블, 제약 이름 지정, 순번 테이블 초기 행 insert
-- [ ] 계좌번호 순번 발급기 (`AccountNumberRepository` 순번 테이블 구현체)
-- [ ] `BaseTimeEntity` (`@MappedSuperclass`, `@CreatedDate`, `@LastModifiedDate`) + JPA Auditing 설정
-- [ ] `Member` 엔티티 + Repository 테스트
-- [ ] `Account` 엔티티 매핑 (Money 매핑 방식 결정)
-- [ ] 회원가입 요청 DTO + 입력 검증 테스트
-- [ ] 회원가입 서비스 + API (`spring-security-crypto` 추가)
-- [ ] `ProblemDetail` 기반 에러 처리 (`@RestControllerAdvice`)
-- [ ] `@CurrentMember` + `X-Member-Id` 리졸버 (local 프로파일)
+- [x] 계좌번호 순번 발급기 (`AccountNumberRepository` 순번 테이블 구현체)
+- [x] `BaseTimeEntity` (`@MappedSuperclass`, `@CreatedDate`, `@LastModifiedDate`) + JPA Auditing 설정
+- [x] `Member` 엔티티 + Repository 테스트
+- [x] `Account` 엔티티 매핑 (Money 매핑 방식 결정)
+- [x] 회원가입 요청 DTO + 입력 검증 테스트
+- [x] 회원가입 서비스 + API (`spring-security-crypto` 추가)
+- [x] `ProblemDetail` 기반 에러 처리 (`@RestControllerAdvice`)
+- [x] `@CurrentMember` + `X-Member-Id` 리졸버 (`!prod` 프로파일)
+- [ ] 리졸버 등록을 `WebConfig`에서 프로파일 전용 `@Configuration`으로 분리 (`@Profile`을 메서드가 아닌 클래스에)
+- [ ] prod 프로파일에서 `@CurrentMember`를 항상 401로 막는 리졸버 등록

@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.jdbc.core.JdbcTemplate
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.web.client.RestClient
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import tools.jackson.module.kotlin.readValue
@@ -22,6 +23,7 @@ import xyz.jxmen.mockx.TestcontainersConfiguration
  * - 계약은 docs/db-design-member.md 5장(인증), 6장(에러 응답)을 따른다.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
 @Import(TestcontainersConfiguration::class)
 class MemberMeE2ETest(
     @Value("\${local.server.port}") port: Int,
