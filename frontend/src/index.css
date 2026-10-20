@@ -17,6 +17,9 @@
   --color-warn-ink: #6b4300;
   --color-warn-bg: #fff3d6;
   --color-disabled-bg: #dadad5;
+  --color-ok-ink: #1d5c2e;
+  --color-ok-bg: #e8f3eb;
+  --color-ok-line: #b5d6bd;
 
   --font-sans: 'IBM Plex Sans KR', system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
@@ -264,6 +267,20 @@ a {
   border-radius: var(--radius);
 }
 
+/* 성공 안내 */
+.notice {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-ok-ink);
+  background: var(--color-ok-bg);
+  border: 1px solid var(--color-ok-line);
+  border-radius: var(--radius);
+}
+
 /* 버튼 */
 .button {
   min-height: 44px;
@@ -358,6 +375,127 @@ a {
 
 .summary__amount {
   font-variant-numeric: tabular-nums;
+}
+
+/* 입금 */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.button--small {
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+.summary__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+#deposit-amount {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.field__unit {
+  display: flex;
+  flex: none;
+  align-items: center;
+  order: -1;
+  padding: 0 4px;
+  font-size: 18px;
+  color: var(--color-muted);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: -8px;
+}
+
+.chip {
+  min-height: 36px;
+  padding: 0 12px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  border-radius: 999px;
+}
+
+.history {
+  margin-top: 16px;
+}
+
+.history__title {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+
+.history__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.history__table th {
+  padding: 0 0 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-muted);
+  text-align: left;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.history__table td {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-line);
+  font-variant-numeric: tabular-nums;
+}
+
+.history__table .num {
+  text-align: right;
+}
+
+.history__note {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+.dev-box {
+  margin: 0;
+  padding: 8px 12px 12px;
+  border: 1px dashed #8f8f8a;
+  border-radius: var(--radius);
+}
+
+.dev-box legend {
+  padding: 0 4px;
+  font-size: 12px;
+  color: var(--color-muted);
+}
+
+.dev-box .dev-toggle {
+  margin-top: 0;
+}
+
+.dev-field {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+.dev-field .header__dev-input {
+  width: 96px;
 }
 
 /* 빈 상태, 불러오는 중 */

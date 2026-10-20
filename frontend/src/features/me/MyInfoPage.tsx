@@ -2,7 +2,7 @@ import { Fragment, useEffect, useState } from 'react'
 import { getMyInfo, type AccountType, type MyInfoResponse } from '../../api/members'
 import { useMemberId } from '../../auth/memberIdContext'
 import { formatAccountNumber } from '../../lib/accountNumber'
-import { formatWon } from '../../lib/money'
+import { formatDollar } from '../../lib/money'
 import { ErrorIcon } from '../signup/FormField'
 import { toMyInfoErrorMessage } from './myInfoError'
 
@@ -83,11 +83,11 @@ function MyInfoSummary({ data }: { data: MyInfoResponse }) {
           </div>
           <div>
             <dt>예수금</dt>
-            <dd className="mono summary__amount">{formatWon(account.balance)}</dd>
+            <dd className="mono summary__amount">{formatDollar(account.balance)}</dd>
           </div>
           <div>
             <dt>주문으로 묶인 금액</dt>
-            <dd className="mono summary__amount">{formatWon(account.holdAmount)}</dd>
+            <dd className="mono summary__amount">{formatDollar(account.holdAmount)}</dd>
           </div>
         </Fragment>
       ))}

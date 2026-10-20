@@ -31,7 +31,7 @@ src/
   api/          fetch 래퍼(Problem Details 파싱), API 함수
   auth/         X-Member-Id 개발용 인증 스텁 (localStorage 저장)
   components/   공통 컴포넌트 (헤더)
-  features/     화면 단위 기능 (signup)
+  features/     화면 단위 기능 (signup, me, deposit)
   lib/          순수 함수 (계좌번호 표시 등)
 ```
 
@@ -40,4 +40,7 @@ src/
 - 헤더의 `X-Member-Id` 입력칸: 로그인 대신 회원을 전환한다. 가입에 성공하면 새 회원 ID로 바뀐다.
 - 회원가입 폼의 "클라이언트 검증 끄기": 서버 검증(400 `INVALID_INPUT`)을 화면에서 직접 확인할 때 쓴다.
 
-둘 다 `import.meta.env.DEV`일 때만 보인다.
+- 입금 화면의 "클라이언트 검증 끄기": 소수, 음수, 문자도 그대로 보내 서버 검증(400 `INVALID_INPUT`)을 확인한다.
+- 입금 화면의 "다른 계좌 id로 보내기": 남의 계좌·없는 계좌로 보내 소유자 검증(404 `ACCOUNT_NOT_FOUND`)을 확인한다.
+
+모두 `import.meta.env.DEV`일 때만 보인다.

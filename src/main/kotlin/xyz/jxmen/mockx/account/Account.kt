@@ -65,10 +65,11 @@ class Account(
     /**
      * 입금
      */
-    fun deposit(money: Money) {
+    fun deposit(money: Money): Money {
         require(money.isPositive()) { "입금할 금액은 양수여야만 합니다." }
 
         this.balance += money
+        return this.balance
     }
 
     /**

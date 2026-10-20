@@ -15,6 +15,9 @@ export function Header() {
           <NavLink to="/me" className="header__link">
             내 정보
           </NavLink>
+          <NavLink to="/deposit" className="header__link">
+            입금
+          </NavLink>
         </nav>
       </div>
       {import.meta.env.DEV && (

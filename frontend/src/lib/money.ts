@@ -1,6 +1,6 @@
-const wonFormatter = new Intl.NumberFormat('ko-KR')
+const dollarFormatter = new Intl.NumberFormat('en-US')
 
-/** 원 단위 금액을 천 단위 쉼표와 '원'을 붙여 표시한다. (예: 10000 → "10,000원") */
-export function formatWon(amount: number): string {
-  return `${wonFormatter.format(amount)}원`
+/** 달러 단위 정수 금액에 '$'와 천 단위 쉼표를 붙여 표시한다. (예: 10000 → "$10,000") */
+export function formatDollar(amount: number): string {
+  return `$${dollarFormatter.format(amount)}`
 }

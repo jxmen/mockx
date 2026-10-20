@@ -6,6 +6,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import tools.jackson.databind.exc.MismatchedInputException
 
 @RestControllerAdvice
@@ -22,8 +23,17 @@ class ApiExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleInvalid(e: MethodArgumentNotValidException): ProblemDetail =
         invalidInput(
-            e.bindingResult.fieldErrors.map { FieldErrorDetail(it.field, it.defaultMessage ?: INVALID_VALUE) },
+            e.bindingResult.fieldErrors.map {
+                FieldErrorDetail(
+                    it.field,
+                    it.defaultMessage ?: INVALID_VALUE
+                )
+            },
         )
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException::class)
+    fun handleInvalid(e: MethodArgumentTypeMismatchException): ProblemDetail =
+        invalidInput(listOf(FieldErrorDetail(e.name, INVALID_VALUE)))
 
     // 역직렬화 실패. non-null 필드가 빠졌거나 null이면 MismatchedInputException 계열이고,
     // path 마지막 항목에서 실패한 필드 하나를 알 수 있다. 그 밖(JSON 문법 오류 등)은 errors 없이 응답한다

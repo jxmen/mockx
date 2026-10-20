@@ -9,3 +9,6 @@ spring:
       hibernate:
         jdbc:
           time_zone: UTC # Instant를 DATETIME(6)에 UTC로 저장한다
+  jackson:
+    deserialization:
+      accept-float-as-int: false

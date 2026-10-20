@@ -8,12 +8,12 @@ class AccountTest :
     DescribeSpec({
         describe("deposit") {
             context("양수 금액을 입금하면") {
-                it("예수금이 그만큼 늘어난다") {
+                it("예수금이 그만큼 늘어나고, 늘어난 예수금을 반환한다") {
                     val account = anAccount()
 
-                    account.deposit(Money(10_000))
+                    account.deposit(Money(10_000)) shouldBe Money(10_000)
                     account.balance shouldBe Money(10_000)
-                    account.deposit(Money(10_000))
+                    account.deposit(Money(10_000)) shouldBe Money(20_000)
                     account.balance shouldBe Money(20_000)
                 }
             }
