@@ -1,6 +1,6 @@
 # 계좌(Account) 설계
 
-> 최종 수정: 2026-10-14. 회원가입 흐름과 테이블 공통 규칙(단수형 이름, `DATETIME(6)` UTC, 제약 이름, Flyway)은 [`db-design-member.md`](db-design-member.md)를 참고한다.
+> 최종 수정: 2026-10-22. 회원가입 흐름과 테이블 공통 규칙(단수형 이름, `DATETIME(6)` UTC, 제약 이름, Flyway)은 [`db-design-member.md`](db-design-member.md)를 참고한다. 원장 방식은 [`ledger-single-vs-double-entry.md`](ledger-single-vs-double-entry.md), 종목은 [`db-design-stock.md`](db-design-stock.md)를 참고한다.
 
 ## 1. 정책
 
@@ -10,6 +10,9 @@
 | 추가 계좌 | 만들 수 없음 (회원당 계좌 1개) |
 | 삭제 | MVP에서 만들지 않음 |
 | 연관관계 | Member를 `memberId: Long`으로 ID만 참조 |
+| 통화·단위 | USD, 정수 센트(`Money.amount: Long`, $1 = 100). DB와 API 요청·응답 모두 센트다. 센트보다 작은 단위는 받지 않는다(입금 `10.5`는 400) |
+
+- 처음에는 정수 달러였다. 주문 가격에 센트가 필요해서 정수 센트로 바꿨다([`db-design-stock.md`](db-design-stock.md) 4.1, `V3__convert_money_to_cents.sql`).
 
 ## 2. 테이블
 
@@ -68,14 +71,66 @@ SELECT LAST_INSERT_ID();
 - 두 쿼리는 같은 커넥션에서 실행돼야 한다. 그래서 반드시 트랜잭션 안에서 호출한다.
 - 회원가입 트랜잭션 안에서 발급하므로, 가입이 롤백되면 순번도 롤백된다(번호가 비지 않음). 대신 순번 행에 잡힌 락이 커밋까지 유지되므로, 동시에 들어온 가입 요청은 순서대로 처리된다.
 
-## 4. 진행 상황
+## 4. 입금
+
+### 요청
+
+`POST /api/accounts/{accountId}/deposit` (`X-Member-Id` 헤더 필요)
+
+| 필드 | 규칙 |
+|---|---|
+| `amount` | 정수 센트, 1($0.01) 이상 1,000,000($10,000) 이하 (`@Positive`, `@Max(1000000)`) |
+
+- 상한은 입금 1건 기준이다. 여러 번 입금해서 합계가 $10,000을 넘는 것은 허용한다.
+- `10.5`처럼 소수가 오면 400이다. 10센트로 잘려 입금되지 않는다. 화면은 달러로 입력받아 센트로 바꿔 보낸다.
+
+### 응답
+
+```http
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{ "accountId": 1, "amount": 100, "balance": 300 }
+```
+
+- `balance`는 입금 후 예수금이다.
+
+### 처리 흐름
+
+```
+DepositService.deposit(accountId, memberId, amount)   @Transactional
+ ├─ accountRepository.findWithLockByIdAndMemberId()   SELECT ... FOR UPDATE (PESSIMISTIC_WRITE)
+ │    └─ 없거나 남의 계좌 → AccountNotFoundException (404)
+ ├─ account.deposit(Money)                            balance += amount
+ └─ ledgerRepository.save(Ledger.createDeposit())     원장 DEPOSIT 1건, balance_after 기록
+```
+
+- 계좌 조회 조건에 `memberId`를 함께 넣어 소유자 검증을 조회 한 번으로 끝낸다. 남의 계좌와 없는 계좌는 같은 404다([`db-design-member.md`](db-design-member.md) 5장).
+- 동시성은 계좌 행 비관적 락으로 제어한다. 같은 계좌에 들어온 입금은 락을 얻은 순서대로 하나씩 처리되고, 락은 커밋할 때 풀린다.
+- 예수금 변경과 원장 기록은 한 트랜잭션이다. 둘 중 하나만 반영되지 않는다.
+- 비관적 락을 고른 이유(낙관적 락과 비교)는 아직 기록되지 않았다. 동시 매수 작업 전에 채운다(6장).
+
+### 에러 응답
+
+| 상황 | 상태 코드 | code |
+|---|---|---|
+| `amount` 범위 밖, 누락, `null`, 소수, Long 범위 초과, 숫자 아님 | 400 | `INVALID_INPUT` |
+| 경로의 `accountId`가 숫자 아님 | 400 | `INVALID_INPUT` |
+| `X-Member-Id` 헤더 없음, 형식 오류 | 401 | `UNAUTHENTICATED` |
+| 계좌가 없거나 남의 계좌 | 404 | `ACCOUNT_NOT_FOUND` |
+
+## 5. 진행 상황
 
 - [x] `Luhn` 검증숫자 계산 + 테스트
 - [x] `AccountNumber.issue()` (0 패딩, 8자리 초과 검사) + 테스트
 - [x] `Account` 도메인 로직 (deposit, hold, release) + 테스트
 - [x] `AccountNumberRepository` 순번 테이블 구현체
 - [x] `account.type` 컬럼 추가 (`VARCHAR(20)`, `EnumType.STRING`)
-- [x] `Account` 엔티티 매핑 (Money 매핑 방식 결정: `@Embedded` + `@AttributeOverride` 또는 `AttributeConverter`)
+- [x] `Account` 엔티티 매핑 (Money: `@Embedded` + `@AttributeOverride`)
+- [x] `V2__create_ledger.sql` + `Ledger` 엔티티 (단식부기, `DEPOSIT` 타입) + 테스트
+- [x] 입금 API + E2E 테스트 (`DepositE2ETest`)
+- [x] 입금 동시성 테스트: 같은 계좌에 1센트 입금 100건 동시 요청 (`DepositConcurrencyTest`)
+- [x] 내 정보 조회(`GET /api/members/me`) 응답에 `balance`, `holdAmount` 포함
 
 ### 테스트 시나리오 (순번 발급기)
 
@@ -83,15 +138,25 @@ SELECT LAST_INSERT_ID();
 - 상품코드 행이 없으면 예외가 난다
 - 동시에 100건을 발급해도 모두 서로 다른 번호가 나온다
 
-## 5. 나중으로 미룬 것
+### 테스트 시나리오 (입금)
+
+- 내 계좌에 입금하면 200, 응답 본문은 `accountId`, `amount`, `balance`만 있다
+- 예수금이 입금액만큼 늘고 `hold_amount`는 그대로다. 원장에 `DEPOSIT` 1건이 입금액과 입금 후 잔액으로 남는다
+- 여러 번 입금하면 예수금 = 원장 금액 합계 = 마지막 원장의 `balance_after`
+- 경계값: 1센트, 1,000,000센트($10,000)는 성공. 0, -1, `Long.MIN_VALUE`, 1,000,001센트, `Long.MAX_VALUE`는 400
+- 소수(`10.5`), Long 범위 초과(`9223372036854775808`), 문자열은 400이고 500으로 새지 않는다
+- 401, 없는 계좌 404, 남의 계좌 404(그 계좌의 예수금과 원장은 그대로)
+- 동시 100건: 모두 성공, 예수금 100센트($1), 원장 100건, `balance_after`가 1~100으로 중복 없이 기록된다
+
+## 6. 나중으로 미룬 것
 
 | 항목 | 시점 |
 |---|---|
-| 원장(ledger) 테이블 설계 | 입금 API 작업 시 |
-| 동시성 제어 (`version` 컬럼 또는 비관적 락) | 동시 매수 테스트 작업 시, V2 마이그레이션으로 추가 |
+| 매수 hold의 동시성 제어 (입금과 같은 비관적 락 또는 `version` 컬럼) | 동시 매수 테스트 작업 시. 컬럼을 추가하면 그 시점의 다음 Flyway 버전을 쓴다 (V1·V2 사용 중, V3는 `stock` 예정) |
+| 원장 체결 ID 컬럼, 매수·매도 `LedgerType` | 체결 작업 시 ([`ledger-single-vs-double-entry.md`](ledger-single-vs-double-entry.md) 7장) |
 | CHECK 제약 (`balance >= 0`, `hold_amount <= balance`) | 필요 시 검토 |
 
-## 6. 알려진 한계
+## 7. 알려진 한계
 
 - `X-Member-Id` 스텁 단계에서는 헤더 값만 바꾸면 다른 회원이 될 수 있다. 배포 전 세션 로그인으로 교체한다.
 - 계좌번호가 순번이라 다음 번호를 추측할 수 있다. 소유자 검증(남의 계좌는 404)으로 막는다.

@@ -112,7 +112,7 @@ class MemberMeE2ETest(
                     (account["id"] as Number).toLong() shouldBe accountIdOf(memberId)
                     account["type"] shouldBe "BROKERAGE" // AccountType enum 이름 그대로
                     account["number"] shouldBe "100000000016" // 첫 순번(1)으로 발급된 계좌번호. 하이픈 없는 12자리 문자열
-                    account["balance"] shouldBe 0 // 가입 직후 예수금은 0원. 객체({"amount": 0})가 아니라 숫자여야 한다
+                    account["balance"] shouldBe 0 // 가입 직후 예수금은 0. 객체({"amount": 0})가 아니라 숫자여야 한다
                     account["holdAmount"] shouldBe 0
                 }
                 it("계좌의 예수금과 묶인 금액을 숫자로 반환한다") {

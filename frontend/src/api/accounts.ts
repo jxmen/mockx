@@ -1,15 +1,15 @@
 import { apiRequest } from './client'
 
 export type DepositRequest = {
-  /** 달러 단위 정수. 1회 1 이상 10,000 이하 */
+  /** 센트 단위 정수($1 = 100). 1회 1 이상 1,000,000 이하 */
   amount: number
 }
 
 export type DepositResponse = {
   accountId: number
-  /** 입금액(달러) */
+  /** 입금액(센트) */
   amount: number
-  /** 입금 후 예수금(달러) */
+  /** 입금 후 예수금(센트) */
   balance: number
 }
 

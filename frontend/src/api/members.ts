@@ -26,9 +26,9 @@ export type AccountInfo = {
   type: AccountType
   /** 하이픈 없는 숫자 12자리 */
   number: string
-  /** 예수금(달러) */
+  /** 예수금(센트) */
   balance: number
-  /** 매수 주문으로 묶인 금액(달러) */
+  /** 매수 주문으로 묶인 금액(센트) */
   holdAmount: number
 }
 

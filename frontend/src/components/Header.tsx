@@ -1,5 +1,6 @@
-import { NavLink } from 'react-router'
+import { Link, NavLink } from 'react-router'
 import { useMemberId } from '../auth/memberIdContext'
+import { ThemeToggle } from './ThemeToggle'
 
 export function Header() {
   const { memberId, setMemberId } = useMemberId()
@@ -7,7 +8,9 @@ export function Header() {
   return (
     <header className="header">
       <div className="header__left">
-        <span className="header__brand">mockx</span>
+        <Link to="/" className="header__brand">
+          mockx
+        </Link>
         <nav aria-label="주요 메뉴" className="header__nav">
           <NavLink to="/signup" className="header__link">
             회원가입
@@ -18,24 +21,30 @@ export function Header() {
           <NavLink to="/deposit" className="header__link">
             입금
           </NavLink>
+          <NavLink to="/stocks" className="header__link">
+            종목
+          </NavLink>
         </nav>
       </div>
-      {import.meta.env.DEV && (
-        <div className="header__dev">
-          <label htmlFor="dev-member-id" className="header__dev-label">
-            X-Member-Id
-          </label>
-          <input
-            id="dev-member-id"
-            className="header__dev-input"
-            inputMode="numeric"
-            placeholder="없음"
-            value={memberId ?? ''}
-            onChange={(event) => setMemberId(event.target.value)}
-          />
-          <span className="header__dev-badge">local 전용</span>
-        </div>
-      )}
+      <div className="header__right">
+        {import.meta.env.DEV && (
+          <div className="header__dev">
+            <label htmlFor="dev-member-id" className="header__dev-label">
+              X-Member-Id
+            </label>
+            <input
+              id="dev-member-id"
+              className="header__dev-input"
+              inputMode="numeric"
+              placeholder="없음"
+              value={memberId ?? ''}
+              onChange={(event) => setMemberId(event.target.value)}
+            />
+            <span className="header__dev-badge">local 전용</span>
+          </div>
+        )}
+        <ThemeToggle />
+      </div>
     </header>
   )
 }

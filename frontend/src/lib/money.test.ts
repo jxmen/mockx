@@ -1,13 +1,17 @@
 import { describe, expect, it } from 'vitest'
-import { formatDollar } from './money'
+import { formatCents } from './money'
 
-describe('formatDollar', () => {
+describe('formatCents', () => {
   it.each([
-    [0, '$0'],
-    [999, '$999'],
-    [1000, '$1,000'],
-    [123456789, '$123,456,789'],
-  ])('%d를 "%s"로 표시한다', (amount, expected) => {
-    expect(formatDollar(amount)).toBe(expected)
+    [0, '$0.00'],
+    [1, '$0.01'],
+    [99, '$0.99'],
+    [100, '$1.00'],
+    [187430, '$1,874.30'],
+    [1_000_000, '$10,000.00'],
+    [12_345_678_901, '$123,456,789.01'],
+    [-150, '-$1.50'],
+  ])('%d센트를 "%s"로 표시한다', (cents, expected) => {
+    expect(formatCents(cents)).toBe(expected)
   })
 })

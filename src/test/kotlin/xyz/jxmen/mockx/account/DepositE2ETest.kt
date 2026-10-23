@@ -20,7 +20,7 @@ import xyz.jxmen.mockx.member.ApiResponse
 
 /**
  * 입금 API 계약 테스트. 실제 서버(RANDOM_PORT)에 HTTP로 요청하고, Testcontainers MySQL을 쓴다.
- * - amount는 달러 단위 정수다. 1회 입금은 $1 이상 $10,000 이하만 허용하고, 센트(소수)는 받지 않는다.
+ * - amount는 센트 단위 정수다($1 = 100). 1회 입금은 1센트($0.01) 이상 1,000,000센트($10,000) 이하만 허용하고, 소수는 받지 않는다.
  * - 회원과 계좌는 가입 API로 만든다. 설정이 MemberMeE2ETest와 같아서 Spring 컨텍스트와 MySQL 컨테이너를 재사용한다.
  * - 계약은 docs/db-design-member.md 5장(소유자 검증), 6장(에러 응답)을 따른다.
  */
@@ -34,7 +34,7 @@ class DepositE2ETest(
         val mapper = jacksonObjectMapper()
         val client = RestClient.builder().baseUrl("http://localhost:$port").build()
 
-        val maxAmount = 10_000L // $10,000
+        val maxAmount = 1_000_000L // $10,000
 
         // 4xx, 5xx에도 예외를 던지지 않고 상태 코드와 본문을 그대로 돌려받는다.
         // accountIdPath는 경로에 그대로 들어간다. 숫자가 아닌 id 같은 형식 오류를 보낼 때 문자열을 넘긴다
@@ -229,8 +229,8 @@ class DepositE2ETest(
 
             context("금액이 허용 범위의 경계값이면") {
                 withData(
-                    nameFn = { "${it}달러는 입금된다" },
-                    1L, // 최소 단위 $1
+                    nameFn = { "${it}센트는 입금된다" },
+                    1L, // 최소 단위 1센트($0.01)
                     maxAmount, // 상한 $10,000
                 ) { amount ->
                     resetTables() // withData 항목은 container로 등록돼 beforeEach가 돌지 않는다
@@ -250,7 +250,7 @@ class DepositE2ETest(
                     0L,
                     -1L,
                     Long.MIN_VALUE, // 부호만 보고 거절해야 한다
-                    maxAmount + 1, // 상한 + $1
+                    maxAmount + 1, // 상한 + 1센트
                     Long.MAX_VALUE,
                 ) { amount ->
                     resetTables()
@@ -288,10 +288,10 @@ class DepositE2ETest(
             }
 
             // 숫자 형식 오류는 역직렬화 단계에서 실패한다. 어떤 예외로 오는지에 따라 errors가 없을 수 있어서 상태와 code만 본다
-            context("amount가 달러 단위 정수가 아니면") {
+            context("amount가 센트 단위 정수가 아니면") {
                 withData(
                     nameFn = { "amount: $it 이면 400 INVALID_INPUT을 응답하고, 예수금과 원장은 그대로다" },
-                    "10.5", // 센트는 받지 않는다. $10으로 잘려 입금되면 안 된다
+                    "10.5", // 센트보다 작은 단위는 없다. 10센트로 잘려 입금되면 안 된다
                     "9223372036854775808", // Long.MAX_VALUE + 1. 파싱 예외가 500으로 새지 않아야 한다
                     "\"abc\"", // 숫자 아님
                 ) { rawAmount ->

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- mockx 로고: 왼쪽 위 m, 오른쪽 아래 x. x가 지나가는 자리를 m에서 파내 두 글자가 엇갈려 보이게 한다 -->
+  <defs>
+    <mask id="cut">
+      <rect width="64" height="64" fill="#fff" />
+      <path d="M29 26l28 28M57 26L29 54" stroke="#000" stroke-width="13" stroke-linecap="round" />
+    </mask>
+  </defs>
+  <g fill="none" stroke="#000" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <path mask="url(#cut)" d="M7 38V18a8 8 0 0 1 16 0v20M23 18a8 8 0 0 1 16 0v20" />
+    <path d="M29 26l28 28M57 26L29 54" />
+  </g>
+</svg>

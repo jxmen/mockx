@@ -31,6 +31,11 @@ class ApiExceptionHandler {
             },
         )
 
+    // @Valid 밖에서 찾은 입력값 오류. @Valid 실패와 같은 모양으로 응답한다
+    @ExceptionHandler(InvalidInputException::class)
+    fun handleInvalidInput(e: InvalidInputException): ProblemDetail =
+        invalidInput(listOf(FieldErrorDetail(e.field, e.detail)))
+
     @ExceptionHandler(MethodArgumentTypeMismatchException::class)
     fun handleInvalid(e: MethodArgumentTypeMismatchException): ProblemDetail =
         invalidInput(listOf(FieldErrorDetail(e.name, INVALID_VALUE)))

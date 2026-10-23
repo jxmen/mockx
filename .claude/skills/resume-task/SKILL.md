@@ -39,7 +39,7 @@ git diff HEAD -U0 | grep -nE '^\+.*(TODO|FIXME|XXX)'
 **문서와 기록**
 - `docs/*.md`의 작업 목록·진행 상황 섹션에서 `- [ ]` 미완료 항목 (현재 브랜치와 관련된 도메인 위주)
 - `docs/interview-drill-log.md`의 `[미해결]` 항목 (있으면 개수와 최근 것 1~2개)
-- 리뷰 준비 정리 파일: `/tmp/review-prep-<브랜치명>.md`, `/tmp/review-diff-<브랜치명>-*.md` (브랜치명의 `/`는 `-`). 있으면 "손볼 목록"만 가져온다.
+- 커밋 전 점검 기록: `/tmp/review-diff-<브랜치명>-*.md` (브랜치명의 `/`는 `-`). 있으면 가장 최근 파일의 "손볼 목록"만 가져온다.
 - CLAUDE.md의 MVP 범위 대비 어디까지 왔는지
 
 ## 2. 요약 출력
@@ -63,7 +63,7 @@ git diff HEAD -U0 | grep -nE '^\+.*(TODO|FIXME|XXX)'
 
 **남은 일**
 - [ ] 입금 서비스 + 원장 기록 (docs/db-design-account.md 4장)
-- 리뷰 준비 손볼 목록 2건 (/tmp/review-prep-feature-deposit.md)
+- 커밋 전 점검 손볼 목록 2건 (/tmp/review-diff-feature-deposit-20261022-2310.md)
 - 모의면접 미해결 1건: 동시 hold 경합
 
 **다음 할 일 추천**

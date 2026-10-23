@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { signup, type SignupResponse } from '../../api/members'
 import { useMemberId } from '../../auth/memberIdContext'
 import { formatAccountNumber } from '../../lib/accountNumber'
+import { pageTitle } from '../../lib/pageTitle'
 import { ErrorIcon, FormField } from './FormField'
 import { toSignupErrorFeedback } from './signupErrorFeedback'
 import {
@@ -143,6 +144,7 @@ export function SignupPage() {
 
   return (
     <main className="page page--narrow">
+      <title>{pageTitle('회원가입')}</title>
       <h1 className="page__title">회원가입</h1>
       <p className="page__lead">가입하면 위탁계좌 1개가 함께 개설됩니다.</p>
 
@@ -219,6 +221,7 @@ function SignupSuccess({ result, onReset }: { result: SignupResponse; onReset: (
 
   return (
     <main className="page page--narrow">
+      <title>{pageTitle('가입 완료')}</title>
       <section className="card success" aria-labelledby="signup-success-title">
         <h1 id="signup-success-title" className="success__title" ref={headingRef} tabIndex={-1}>
           {result.nickname}님, 가입이 완료됐어요

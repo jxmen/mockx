@@ -1,6 +1,8 @@
 # 단식부기 vs 복식부기
 
-> 작성: 2026-10-18. 원장(ledger) 설계 전에 두 방식의 차이를 정리한 문서다. 계좌 테이블은 [`db-design-account.md`](db-design-account.md)를 참고한다.
+> 최종 수정: 2026-10-22. 원장(ledger) 설계 전에 두 방식의 차이를 정리한 문서다. 계좌 테이블과 입금 흐름은 [`db-design-account.md`](db-design-account.md)를 참고한다.
+>
+> 예시 금액은 원 단위로 썼지만, mockx의 예수금은 USD다.
 
 ## 1. 예시 상황
 
@@ -103,3 +105,21 @@
 - **왜 복식부기로 하지 않았나?** MVP 범위에서 시스템 계정과 거래/분개 구조를 추가하는 비용이 크다고 판단했다. 대신 체결 ID로 거래 양쪽을 연결해 추적할 수 있게 했다.
 - **복식부기의 장점은?** 모든 돈의 이동에 출처와 목적지가 남는다. 전체 합계가 0이라는 불변식 하나로 누락이나 버그를 검증할 수 있다.
 - **가상 머니의 출처는 어떻게 기록하나?** 발행용 시스템 계정을 상대 계정으로 둔다. 그 계정 잔액의 절댓값이 총 발행액이 된다.
+
+## 9. 현재 테이블 (`V2__create_ledger.sql`)
+
+### ledger
+
+| 컬럼 | 타입 | 제약 |
+|---|---|---|
+| `id` | `BIGINT` | PK, auto increment |
+| `account_id` | `BIGINT` | NOT NULL, `idx_ledger_account_id` |
+| `amount` | `BIGINT` | NOT NULL (변동 금액, 달러) |
+| `balance_after` | `BIGINT` | NOT NULL (변동 후 예수금) |
+| `type` | `VARCHAR(20)` | NOT NULL (`LedgerType` enum 이름. 현재 `DEPOSIT`만 있음) |
+| `created_at` | `DATETIME(6)` | NOT NULL |
+| `updated_at` | `DATETIME(6)` | NOT NULL |
+
+- 단식부기라 계좌 한 줄짜리 기록이다. 상대 계정이 없다.
+- `balance_after`를 남겨서 "예수금 = 원장 금액 합계 = 마지막 `balance_after`"를 검증할 수 있다(`DepositE2ETest`).
+- 체결 ID 컬럼과 매수·매도 타입은 아직 없다. 체결 작업 때 추가한다(7장).

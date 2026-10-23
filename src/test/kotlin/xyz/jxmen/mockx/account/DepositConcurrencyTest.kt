@@ -94,8 +94,8 @@ class DepositConcurrencyTest(
         beforeEach { resetTables() }
 
         describe("DepositService.deposit") {
-            context("같은 계좌에 1달러 입금 100건을 동시에 요청하면") {
-                it("모든 입금이 성공하고, 예수금은 100달러, 원장은 100건이다") {
+            context("같은 계좌에 1센트 입금 100건을 동시에 요청하면") {
+                it("모든 입금이 성공하고, 예수금은 100센트($1), 원장은 100건이다") {
                     val (memberId, accountId) = signup("Alice")
 
                     val failures = depositConcurrently(accountId, memberId, 1)

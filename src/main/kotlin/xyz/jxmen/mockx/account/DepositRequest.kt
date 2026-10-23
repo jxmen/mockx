@@ -6,6 +6,6 @@ import jakarta.validation.constraints.Positive
 data class DepositRequest(
 
     @Positive
-    @Max(10000)
+    @Max(1000000)
     val amount: Long,
 )

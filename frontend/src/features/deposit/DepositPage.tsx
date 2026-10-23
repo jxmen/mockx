@@ -3,10 +3,11 @@ import { deposit, type DepositResponse } from '../../api/accounts'
 import { getMyInfo, type AccountInfo } from '../../api/members'
 import { useMemberId } from '../../auth/memberIdContext'
 import { formatAccountNumber } from '../../lib/accountNumber'
-import { formatDollar } from '../../lib/money'
+import { formatCents } from '../../lib/money'
+import { pageTitle } from '../../lib/pageTitle'
 import { toMyInfoErrorMessage } from '../me/myInfoError'
 import { ErrorIcon, FormField } from '../signup/FormField'
-import { DEPOSIT_MAX, DEPOSIT_MIN, addToAmount, parseDepositAmount, toRawAmount } from './amount'
+import { DEPOSIT_MAX, DEPOSIT_MIN, addToAmount, centsToInput, parseDepositAmount, toRawAmount } from './amount'
 import { toDepositErrorFeedback } from './depositError'
 
 type AccountState =
@@ -17,7 +18,8 @@ type AccountState =
 /** 이 화면에서 성공한 입금. 원장 조회 API가 생기기 전까지 화면 안에서만 보여 준다 */
 type DepositRecord = DepositResponse & { seq: number; at: Date }
 
-const QUICK_AMOUNTS = [100, 1_000, 5_000]
+// 단위는 센트. $100, $1,000, $5,000
+const QUICK_AMOUNTS = [10_000, 100_000, 500_000]
 
 const timeFormatter = new Intl.DateTimeFormat('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 
@@ -26,10 +28,11 @@ export function DepositPage() {
 
   return (
     <main className="page page--narrow">
+      <title>{pageTitle('입금')}</title>
       <h1 className="page__title">입금</h1>
       <p className="page__lead">
-        위탁계좌에 예수금을 넣습니다. 1회 {formatDollar(DEPOSIT_MIN)} 이상 {formatDollar(DEPOSIT_MAX)} 이하, 달러
-        단위 정수만 입금할 수 있어요.
+        위탁계좌에 예수금을 넣습니다. 1회 {formatCents(DEPOSIT_MIN)} 이상 {formatCents(DEPOSIT_MAX)} 이하, 센트(소수 둘째 자리)까지
+        입금할 수 있어요.
       </p>
 
       {memberId === null ? (
@@ -119,11 +122,11 @@ function AccountSummary({ account, onReload }: { account: AccountInfo; onReload:
       </div>
       <div>
         <dt>예수금</dt>
-        <dd className="mono summary__amount">{formatDollar(account.balance)}</dd>
+        <dd className="mono summary__amount">{formatCents(account.balance)}</dd>
       </div>
       <div>
         <dt>주문 가능 금액</dt>
-        <dd className="mono summary__amount">{formatDollar(account.balance - account.holdAmount)}</dd>
+        <dd className="mono summary__amount">{formatCents(account.balance - account.holdAmount)}</dd>
       </div>
     </dl>
   )
@@ -155,9 +158,9 @@ function DepositForm({ memberId, account, onDeposited }: DepositFormProps) {
 
   const helper = parsed.ok
     ? overridesAccount
-      ? `계좌 id ${targetAccountId.trim()}에 ${formatDollar(parsed.amount)} 입금을 요청합니다.`
-      : `입금 후 예수금 ${formatDollar(account.balance + parsed.amount)} (예상)`
-    : `${formatDollar(DEPOSIT_MIN)} ~ ${formatDollar(DEPOSIT_MAX)}, 정수로 입력해 주세요. 쉼표는 넣어도 됩니다.`
+      ? `계좌 id ${targetAccountId.trim()}에 ${formatCents(parsed.amount)} 입금을 요청합니다.`
+      : `입금 후 예수금 ${formatCents(account.balance + parsed.amount)} (예상)`
+    : `${formatCents(DEPOSIT_MIN)} ~ ${formatCents(DEPOSIT_MAX)}, 달러로 입력해 주세요. 쉼표는 넣어도 됩니다.`
 
   function changeInput(value: string) {
     setInput(value)
@@ -214,7 +217,7 @@ function DepositForm({ memberId, account, onDeposited }: DepositFormProps) {
         <div role="status" className="notice">
           <CheckIcon />
           <span>
-            {formatDollar(lastDeposit.amount)} 입금했어요. 예수금은 {formatDollar(lastDeposit.balance)}입니다.
+            {formatCents(lastDeposit.amount)} 입금했어요. 예수금은 {formatCents(lastDeposit.balance)}입니다.
           </span>
         </div>
       )}
@@ -225,8 +228,8 @@ function DepositForm({ memberId, account, onDeposited }: DepositFormProps) {
         label="입금액 (USD)"
         helper={helper}
         error={amountError}
-        placeholder="예: 1,000"
-        inputMode="numeric"
+        placeholder="예: 1,000.50"
+        inputMode="decimal"
         autoComplete="off"
         value={input}
         inputRef={inputRef}
@@ -243,13 +246,13 @@ function DepositForm({ memberId, account, onDeposited }: DepositFormProps) {
             className="button button--secondary chip"
             onClick={() => changeInput(addToAmount(input, delta))}
           >
-            +{formatDollar(delta)}
+            +{formatCents(delta)}
           </button>
         ))}
         <button
           type="button"
           className="button button--secondary chip"
-          onClick={() => changeInput(String(DEPOSIT_MAX))}
+          onClick={() => changeInput(centsToInput(DEPOSIT_MAX))}
         >
           최대
         </button>
@@ -268,7 +271,7 @@ function DepositForm({ memberId, account, onDeposited }: DepositFormProps) {
               checked={skipClientValidation}
               onChange={(event) => setSkipClientValidation(event.target.checked)}
             />
-            <span>클라이언트 검증 끄기 (소수, 음수, 문자도 그대로 보내 서버 검증 확인)</span>
+            <span>클라이언트 검증 끄기 (센트로 바꾸지 않고 입력값 그대로 보내 서버 검증 확인. 소수, 음수, 문자도 보냄)</span>
           </label>
           <label className="dev-field">
             <span>다른 계좌 id로 보내기 (소유자 검증 확인, 내 계좌 id: {account.id})</span>
@@ -308,8 +311,8 @@ function DepositHistory({ history }: { history: DepositRecord[] }) {
           {history.map((record) => (
             <tr key={record.seq}>
               <td className="mono">{timeFormatter.format(record.at)}</td>
-              <td className="mono num">+{formatDollar(record.amount)}</td>
-              <td className="mono num">{formatDollar(record.balance)}</td>
+              <td className="mono num">+{formatCents(record.amount)}</td>
+              <td className="mono num">{formatCents(record.balance)}</td>
             </tr>
           ))}
         </tbody>

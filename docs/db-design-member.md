@@ -1,6 +1,6 @@
 # 회원(Member) 설계
 
-> 최종 수정: 2026-10-13. 계좌와 계좌번호 설계는 [`db-design-account.md`](db-design-account.md)를 참고한다.
+> 최종 수정: 2026-10-22. 계좌와 계좌번호 설계는 [`db-design-account.md`](db-design-account.md)를 참고한다.
 
 ## 1. 개요
 
@@ -137,10 +137,10 @@ Content-Type: application/json
 로그인 없이 요청 헤더로 회원 ID를 직접 전달한다. 개발 편의용 스텁이다.
 
 ```bash
-curl -X POST localhost:8080/api/orders \
+curl -X POST localhost:8080/api/accounts/1/deposit \
   -H "X-Member-Id: 1" \
   -H "Content-Type: application/json" \
-  -d '{"symbol":"005930","price":70000,"quantity":10}'
+  -d '{"amount":100}'
 ```
 
 - 컨트롤러는 헤더를 직접 읽지 않고 `@CurrentMember memberId: Long`으로 받는다. 값은 `HandlerMethodArgumentResolver`가 채우고, `WebMvcConfigurer.addArgumentResolvers()`로 등록한다.
@@ -191,6 +191,7 @@ Content-Type: application/problem+json
 | JSON 문법 오류 | 400 | `INVALID_INPUT` | 없음 (`errors`도 없음) |
 | password와 passwordConfirm 불일치 | 400 | `PASSWORD_NOT_MATCHED` | `passwordConfirm` |
 | `X-Member-Id` 헤더 없음, 형식 오류 | 401 | `UNAUTHENTICATED` | - |
+| `X-Member-Id`에 해당하는 회원이 없음 (`GET /api/members/me`) | 404 | `MEMBER_NOT_FOUND` | - |
 | 계좌가 없거나 남의 계좌 | 404 | `ACCOUNT_NOT_FOUND` | - |
 | username 중복 (대소문자만 다른 경우 포함) | 409 | `USERNAME_DUPLICATED` | `username` |
 
@@ -247,23 +248,24 @@ Content-Type: application/problem+json
 - 필드가 빠진 요청은 400 `INVALID_INPUT`
 - username은 입력한 대소문자 그대로 저장된다 (도메인 테스트)
 
-### 회원가입 서비스 / API (예정)
+### 회원가입 서비스 / API (`SignupE2ETest`)
 
-- 가입하면 Member와 위탁계좌 1개가 생성되고, 비밀번호는 해시로 저장된다
-- password와 passwordConfirm이 다르면 400 `PASSWORD_NOT_MATCHED`
-- 이미 있는 username이면 409. `Alice`가 있을 때 `alice`로 가입해도 409 (collation 검증이므로 Testcontainers MySQL로 테스트)
-- nickname 중복은 허용
-- 계좌 생성이 실패하면 Member도 롤백
-- 같은 username으로 동시에 가입하면 1건만 성공
+- [x] 가입하면 Member와 위탁계좌 1개가 생성되고, 비밀번호는 해시로 저장된다
+- [x] password와 passwordConfirm이 다르면 400 `PASSWORD_NOT_MATCHED`
+- [x] 이미 있는 username이면 409. `Alice`가 있을 때 `alice`로 가입해도 409 (collation 검증이므로 Testcontainers MySQL로 테스트)
+- [ ] nickname 중복은 허용
+- [x] 계좌 생성이 실패하면 Member도 롤백 (계좌번호 순번도 증가하지 않음)
+- [ ] 같은 username으로 동시에 가입하면 1건만 성공
 
-### 인증 (예정)
+### 인증
 
-- `X-Member-Id` 헤더가 없거나 숫자가 아니면 401
-- prod 프로파일에서는 인증 수단이 없으므로 항상 401 (`MemberMeProdE2ETest`)
+- [x] `X-Member-Id` 헤더가 없거나 양의 정수가 아니면 401 (`MemberMeE2ETest`, `DepositE2ETest`)
+- [x] `X-Member-Id`에 해당하는 회원이 없으면 404 `MEMBER_NOT_FOUND` (`MemberMeE2ETest`)
+- [ ] prod 프로파일에서는 인증 수단이 없으므로 항상 401 (`MemberMeProdE2ETest`)
   - 가입한 회원의 올바른 `X-Member-Id` 헤더로 요청해도 401
   - `?memberId=` 쿼리로 요청해도 401 (리졸버가 없을 때 `@RequestParam`처럼 해석되는 우회 차단)
   - 헤더도 쿼리도 없으면 400이 아니라 401
-- 남의 계좌에 접근하면 404이고, 없는 계좌에 접근한 경우와 응답이 같다
+- [x] 남의 계좌에 접근하면 404이고, 없는 계좌에 접근한 경우와 응답이 같다 (`DepositE2ETest`)
 
 ## 9. 작업 목록
 
@@ -280,5 +282,6 @@ Content-Type: application/problem+json
 - [x] 회원가입 서비스 + API (`spring-security-crypto` 추가)
 - [x] `ProblemDetail` 기반 에러 처리 (`@RestControllerAdvice`)
 - [x] `@CurrentMember` + `X-Member-Id` 리졸버 (`!prod` 프로파일)
-- [ ] 리졸버 등록을 `WebConfig`에서 프로파일 전용 `@Configuration`으로 분리 (`@Profile`을 메서드가 아닌 클래스에)
+- [x] 리졸버 등록을 프로파일 전용 `@Configuration`으로 분리 (`LocalAuthWebConfig`, `@Profile`을 클래스에)
+- [x] 내 정보 조회 API (`GET /api/members/me`) + E2E 테스트
 - [ ] prod 프로파일에서 `@CurrentMember`를 항상 401로 막는 리졸버 등록

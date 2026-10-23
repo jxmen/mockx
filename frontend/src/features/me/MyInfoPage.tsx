@@ -2,7 +2,8 @@ import { Fragment, useEffect, useState } from 'react'
 import { getMyInfo, type AccountType, type MyInfoResponse } from '../../api/members'
 import { useMemberId } from '../../auth/memberIdContext'
 import { formatAccountNumber } from '../../lib/accountNumber'
-import { formatDollar } from '../../lib/money'
+import { formatCents } from '../../lib/money'
+import { pageTitle } from '../../lib/pageTitle'
 import { ErrorIcon } from '../signup/FormField'
 import { toMyInfoErrorMessage } from './myInfoError'
 
@@ -39,6 +40,7 @@ export function MyInfoPage() {
 
   return (
     <main className="page page--narrow">
+      <title>{pageTitle('내 정보')}</title>
       <h1 className="page__title">내 정보</h1>
       <p className="page__lead">상단 X-Member-Id의 회원 정보와 계좌를 보여 줍니다.</p>
 
@@ -83,11 +85,11 @@ function MyInfoSummary({ data }: { data: MyInfoResponse }) {
           </div>
           <div>
             <dt>예수금</dt>
-            <dd className="mono summary__amount">{formatDollar(account.balance)}</dd>
+            <dd className="mono summary__amount">{formatCents(account.balance)}</dd>
           </div>
           <div>
             <dt>주문으로 묶인 금액</dt>
-            <dd className="mono summary__amount">{formatDollar(account.holdAmount)}</dd>
+            <dd className="mono summary__amount">{formatCents(account.holdAmount)}</dd>
           </div>
         </Fragment>
       ))}
