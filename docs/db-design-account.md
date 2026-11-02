@@ -1,6 +1,6 @@
 # 계좌(Account) 설계
 
-> 최종 수정: 2026-10-22. 회원가입 흐름과 테이블 공통 규칙(단수형 이름, `DATETIME(6)` UTC, 제약 이름, Flyway)은 [`db-design-member.md`](db-design-member.md)를 참고한다. 원장 방식은 [`ledger-single-vs-double-entry.md`](ledger-single-vs-double-entry.md), 종목은 [`db-design-stock.md`](db-design-stock.md)를 참고한다.
+> 최종 수정: 2026-10-24. 회원가입 흐름과 테이블 공통 규칙(단수형 이름, `DATETIME(6)` UTC, 제약 이름, Flyway)은 [`db-design-member.md`](db-design-member.md)를 참고한다. 원장 방식은 [`ledger-single-vs-double-entry.md`](ledger-single-vs-double-entry.md), 종목은 [`db-design-stock.md`](db-design-stock.md), 매수 주문의 hold·release는 [`db-design-order.md`](db-design-order.md)를 참고한다.
 
 ## 1. 정책
 
@@ -108,7 +108,7 @@ DepositService.deposit(accountId, memberId, amount)   @Transactional
 - 계좌 조회 조건에 `memberId`를 함께 넣어 소유자 검증을 조회 한 번으로 끝낸다. 남의 계좌와 없는 계좌는 같은 404다([`db-design-member.md`](db-design-member.md) 5장).
 - 동시성은 계좌 행 비관적 락으로 제어한다. 같은 계좌에 들어온 입금은 락을 얻은 순서대로 하나씩 처리되고, 락은 커밋할 때 풀린다.
 - 예수금 변경과 원장 기록은 한 트랜잭션이다. 둘 중 하나만 반영되지 않는다.
-- 비관적 락을 고른 이유(낙관적 락과 비교)는 아직 기록되지 않았다. 동시 매수 작업 전에 채운다(6장).
+- 비관적 락을 고른 이유(낙관적 락과 비교)는 [`db-design-order.md`](db-design-order.md) 9장에 있다. 매수 주문 접수·취소도 같은 계좌 행 락을 쓴다.
 
 ### 에러 응답
 
@@ -152,7 +152,6 @@ DepositService.deposit(accountId, memberId, amount)   @Transactional
 
 | 항목 | 시점 |
 |---|---|
-| 매수 hold의 동시성 제어 (입금과 같은 비관적 락 또는 `version` 컬럼) | 동시 매수 테스트 작업 시. 컬럼을 추가하면 그 시점의 다음 Flyway 버전을 쓴다 (V1·V2 사용 중, V3는 `stock` 예정) |
 | 원장 체결 ID 컬럼, 매수·매도 `LedgerType` | 체결 작업 시 ([`ledger-single-vs-double-entry.md`](ledger-single-vs-double-entry.md) 7장) |
 | CHECK 제약 (`balance >= 0`, `hold_amount <= balance`) | 필요 시 검토 |
 

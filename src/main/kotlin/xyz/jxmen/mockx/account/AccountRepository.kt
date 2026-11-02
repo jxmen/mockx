@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Lock
 
 interface AccountRepository : JpaRepository<Account, Long> {
     fun findByMemberId(memberId: Long): Account?
+    fun findByIdAndMemberId(accountId: Long, memberId: Long): Account?
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     fun findWithLockByIdAndMemberId(

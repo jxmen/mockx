@@ -4,6 +4,7 @@ import { Header } from './components/Header'
 import { DepositPage } from './features/deposit/DepositPage'
 import { HomePage } from './features/home/HomePage'
 import { MyInfoPage } from './features/me/MyInfoPage'
+import { OrderPage } from './features/order/OrderPage'
 import { SignupPage } from './features/signup/SignupPage'
 import { StockDetailPage } from './features/stocks/StockDetailPage'
 import { StocksPage } from './features/stocks/StocksPage'
@@ -20,6 +21,7 @@ function App() {
           <Route path="/deposit" element={<DepositPage />} />
           <Route path="/stocks" element={<StocksPage />} />
           <Route path="/stocks/:symbol" element={<StockDetailPage />} />
+          <Route path="/orders" element={<OrderPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

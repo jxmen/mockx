@@ -50,13 +50,15 @@ class AccountTest :
                 }
             }
             context("주문가능금액보다 큰 금액을 hold하면") {
-                it("예외가 발생하고, 예수금과 hold 금액은 그대로다") {
+                it("INSUFFICIENT_AVAILABLE_AMOUNT 예외가 발생하고, 예수금과 hold 금액은 그대로다") {
                     val account = anAccount()
                     account.deposit(Money(10_000))
 
-                    shouldThrow<IllegalArgumentException> {
-                        account.hold(Money(10_001))
-                    }
+                    val e =
+                        shouldThrow<InsufficientAvailableAmountException> {
+                            account.hold(Money(10_001))
+                        }
+                    e.code shouldBe "INSUFFICIENT_AVAILABLE_AMOUNT"
                     account.balance shouldBe Money(10_000)
                     account.holdAmount shouldBe Money(0)
                 }
@@ -70,7 +72,7 @@ class AccountTest :
                     account.hold(Money(3_000))
 
                     account.holdAmount shouldBe Money(8_000)
-                    shouldThrow<IllegalArgumentException> {
+                    shouldThrow<InsufficientAvailableAmountException> {
                         account.hold(Money(2_001))
                     }
                     account.holdAmount shouldBe Money(8_000)

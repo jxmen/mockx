@@ -38,7 +38,7 @@ git ls-files --others --exclude-standard   # 새 파일
 - 어긋나면 어느 쪽이 맞는지 판단하지 않고 묻는다.
 
 ### 프론트와 백엔드 계약
-- 백엔드 DTO가 바뀌었는데 `frontend/src/api/*.ts`의 타입이 그대로인가 → 확인 필요. 반영은 `frontend-sync`로 안내한다.
+- 백엔드 DTO가 바뀌었는데 `frontend/src/api/*.ts`의 타입이 그대로인가 → 확인 필요. 반영은 `frontend-from-api`로 안내한다.
 - 새 에러 code를 프론트 `*Error.ts`가 다루는가.
 
 ### 테스트 코드

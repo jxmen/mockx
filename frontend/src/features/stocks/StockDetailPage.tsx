@@ -128,9 +128,15 @@ function StockDetail({ stock, requested }: { stock: StockResponse; requested: st
         </div>
       </dl>
 
-      <p className="stock-footnote">
-        현재가와 호가는 매칭 엔진이 체결을 시작하면, 주문은 지정가 주문 API가 생기면 이 화면에 붙일게요.
-      </p>
+      {/* 서버가 정규화한 티커를 넘긴다. mu로 들어와도 주문 화면에는 MU가 채워진다 */}
+      <Link
+        to={`/orders?symbol=${encodeURIComponent(stock.symbol)}`}
+        className="button button--primary button--block"
+      >
+        매수 주문하기
+      </Link>
+
+      <p className="stock-footnote">현재가와 호가는 매칭 엔진이 체결을 시작하면 이 화면에 붙일게요.</p>
     </div>
   )
 }

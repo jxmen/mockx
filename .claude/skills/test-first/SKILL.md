@@ -21,7 +21,9 @@ mockx의 개발 흐름은 **시나리오 합의 → Claude가 실패하는 테�
 2. 관련 `src/main` 코드(있다면): 요청 DTO, 컨트롤러 경로, 예외 클래스, 엔티티 메서드.
 3. 같은 도메인의 기존 테스트: 헬퍼와 스타일을 그대로 따르기 위해서다.
    - E2E 예: `src/test/kotlin/xyz/jxmen/mockx/account/DepositE2ETest.kt` (`RestClient` + `exchange`, `ApiResponse`, `shouldBeProblem`, `resetTables`)
+   - 컨트롤러 단위 예: `order/OrderControllerTest.kt` (`@WebMvcTest` + mockk 서비스 빈, `verify(exactly = 0)`)
    - 도메인 단위 예: `account/AccountTest.kt`
+   - 케이스를 어느 테스트에 둘지는 CLAUDE.md 컨벤션의 테스트 구분을 따른다. 입력 검증·401·경로 변수 형식은 컨트롤러 단위, 정합성·서비스 4xx는 E2E다.
 
 문서에 없는 규칙(예: 금액 상한)이 필요하면 추측하지 말고 사용자에게 묻는다. 묻는 항목은 시나리오 목록의 "결정 필요"에 모은다.
 
@@ -72,6 +74,7 @@ mockx의 개발 흐름은 **시나리오 합의 → Claude가 실패하는 테�
 Kotlin은 테스트가 없는 클래스·메서드를 참조하면 **테스트 소스 전체가 컴파일되지 않아** 다른 테스트까지 돌지 않는다.
 
 - **API 기능**이면 E2E로 쓴다. HTTP와 SQL로만 검증하므로 `src/main` 심볼을 참조하지 않아 미구현이어도 컴파일된다.
+- **컨트롤러 단위 테스트**는 컨트롤러, 서비스, Command, 결과 타입을 참조하므로 이것들이 있어야 컴파일된다. 없으면 입력 검증 케이스도 일단 E2E로 쓰고, 구현 뒤 컨트롤러 테스트로 옮길지 사용자에게 묻는다.
 - **도메인 단위 테스트**가 아직 없는 메서드를 참조해야 하면, 쓰기 전에 사용자에게 필요한 시그니처를 알려준다. (예: "`Account.withdraw(amount: Money)`가 있어야 컴파일됩니다") 사용자가 시그니처를 먼저 만들지, E2E로만 갈지 정하게 한다.
 
 ### 작성 규칙

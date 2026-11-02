@@ -40,6 +40,7 @@ dependencies {
     testImplementation("io.kotest:kotest-runner-junit5:6.2.5")    // 테스트 실행기
     testImplementation("io.kotest:kotest-assertions-core:6.2.5")  // shouldBe 같은 검증 함수
     testImplementation("io.kotest:kotest-extensions-spring:6.2.5") // Kotest 스펙에서 Spring 테스트 컨텍스트 사용
+    testImplementation("io.mockk:mockk:1.14.11") // 컨트롤러 단위 테스트에서 서비스 목 객체
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

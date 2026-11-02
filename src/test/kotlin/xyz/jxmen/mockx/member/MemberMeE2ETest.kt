@@ -15,6 +15,8 @@ import org.springframework.web.client.RestClient
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import tools.jackson.module.kotlin.readValue
 import xyz.jxmen.mockx.TestcontainersConfiguration
+import xyz.jxmen.mockx.accountIdOf
+import xyz.jxmen.mockx.signup
 
 /**
  * 내 정보 조회 API 계약 테스트. 실제 서버(RANDOM_PORT)에 HTTP로 요청하고, Testcontainers MySQL을 쓴다.
@@ -47,30 +49,6 @@ class MemberMeE2ETest(
                     )
                 }
 
-        // 가입에 성공한 회원의 memberId를 돌려준다. 201이 아니면 바로 실패시켜 뒤의 검증이 엉뚱한 이유로 실패하지 않게 한다
-        fun signup(
-            username: String,
-            nickname: String,
-        ): Long {
-            val status =
-                client
-                    .post()
-                    .uri("/api/members")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(
-                        mapOf(
-                            "username" to username,
-                            "nickname" to nickname,
-                            "password" to "pass1234",
-                            "passwordConfirm" to "pass1234",
-                        ),
-                    ).exchange { _, response ->
-                        response.statusCode.value() to response.bodyTo(String::class.java)
-                    }
-            status.first shouldBe 201
-            return (mapper.readValue<Map<String, Any?>>(status.second!!)["memberId"] as Number).toLong()
-        }
-
         // RFC 9457 Problem Details 공통 형식을 검증한다
         fun ApiResponse.shouldBeProblem(
             status: Int,
@@ -86,10 +64,6 @@ class MemberMeE2ETest(
         @Suppress("UNCHECKED_CAST")
         fun ApiResponse.accounts(): List<Map<String, Any?>> = body["accounts"] as List<Map<String, Any?>>
 
-        // 계좌 id는 응답 말고는 알 방법이 없어서 DB에서 직접 꺼내 비교한다
-        fun accountIdOf(memberId: Long): Long =
-            jdbcTemplate.queryForObject("SELECT id FROM account WHERE member_id = ?", Long::class.java, memberId)!!
-
         beforeEach {
             jdbcTemplate.execute("TRUNCATE TABLE member")
             jdbcTemplate.execute("TRUNCATE TABLE account")
@@ -99,7 +73,7 @@ class MemberMeE2ETest(
         describe("GET /api/members/me") {
             context("가입한 회원의 X-Member-Id면") {
                 it("200과 회원 정보, 계좌번호를 반환한다") {
-                    val memberId = signup(username = "Alice", nickname = "앨리스")
+                    val memberId = client.signup(username = "Alice", nickname = "앨리스")
 
                     val response = getMe(memberId.toString())
 
@@ -109,14 +83,14 @@ class MemberMeE2ETest(
                     response.body["nickname"] shouldBe "앨리스"
 
                     val account = response.accounts().single() // 가입하면 위탁계좌 하나가 개설된다
-                    (account["id"] as Number).toLong() shouldBe accountIdOf(memberId)
+                    (account["id"] as Number).toLong() shouldBe jdbcTemplate.accountIdOf(memberId)
                     account["type"] shouldBe "BROKERAGE" // AccountType enum 이름 그대로
                     account["number"] shouldBe "100000000016" // 첫 순번(1)으로 발급된 계좌번호. 하이픈 없는 12자리 문자열
                     account["balance"] shouldBe 0 // 가입 직후 예수금은 0. 객체({"amount": 0})가 아니라 숫자여야 한다
                     account["holdAmount"] shouldBe 0
                 }
                 it("계좌의 예수금과 묶인 금액을 숫자로 반환한다") {
-                    val memberId = signup(username = "Alice", nickname = "앨리스")
+                    val memberId = client.signup(username = "Alice", nickname = "앨리스")
                     // 입금·주문 API가 아직 없어서 DB 값을 직접 바꾼다. 응답이 0으로 고정돼 있지 않은지 확인하려는 것이다
                     jdbcTemplate.update("UPDATE account SET balance = 30000, hold_amount = 5000 WHERE member_id = ?", memberId)
 
@@ -128,7 +102,7 @@ class MemberMeE2ETest(
                     account["holdAmount"] shouldBe 5_000
                 }
                 it("응답 본문에는 memberId, username, nickname, accounts만 있고, 계좌에는 id, type, number, balance, holdAmount만 있다") {
-                    val memberId = signup(username = "Alice", nickname = "앨리스")
+                    val memberId = client.signup(username = "Alice", nickname = "앨리스")
 
                     val response = getMe(memberId.toString())
 
@@ -141,8 +115,8 @@ class MemberMeE2ETest(
 
             context("회원이 여러 명이면") {
                 it("헤더에 넣은 회원의 정보와 그 회원의 계좌만 반환한다") {
-                    signup(username = "Alice", nickname = "앨리스")
-                    val bobId = signup(username = "Bob", nickname = "바비")
+                    client.signup(username = "Alice", nickname = "앨리스")
+                    val bobId = client.signup(username = "Bob", nickname = "바비")
 
                     val response = getMe(bobId.toString())
 
@@ -152,7 +126,7 @@ class MemberMeE2ETest(
                     response.body["nickname"] shouldBe "바비"
 
                     val account = response.accounts().single() // Alice의 계좌가 섞이면 안 된다
-                    (account["id"] as Number).toLong() shouldBe accountIdOf(bobId)
+                    (account["id"] as Number).toLong() shouldBe jdbcTemplate.accountIdOf(bobId)
                     account["number"] shouldBe "100000000024" // 두 번째 순번(2)은 Bob의 계좌
                 }
             }
@@ -180,7 +154,7 @@ class MemberMeE2ETest(
 
             context("X-Member-Id에 해당하는 회원이 없으면") {
                 it("404 MEMBER_NOT_FOUND를 응답한다") {
-                    val memberId = signup(username = "Alice", nickname = "앨리스")
+                    val memberId = client.signup(username = "Alice", nickname = "앨리스")
 
                     getMe((memberId + 1).toString()).shouldBeProblem(404, "MEMBER_NOT_FOUND")
                 }

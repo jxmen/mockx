@@ -12,3 +12,8 @@ spring:
   jackson:
     deserialization:
       accept-float-as-int: false
+    datatype:
+      enum:
+        fail-on-numbers-for-enums: true # 숫자로 들어오면 역직렬화 비허용
+    mapper:
+      accept-case-insensitive-enums: true # enum 변환 시 대소문자 무시

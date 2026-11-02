@@ -24,6 +24,9 @@ export function Header() {
           <NavLink to="/stocks" className="header__link">
             종목
           </NavLink>
+          <NavLink to="/orders" className="header__link">
+            주문
+          </NavLink>
         </nav>
       </div>
       <div className="header__right">

@@ -16,7 +16,9 @@ import org.springframework.web.client.RestClient
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import tools.jackson.module.kotlin.readValue
 import xyz.jxmen.mockx.TestcontainersConfiguration
+import xyz.jxmen.mockx.accountIdOf
 import xyz.jxmen.mockx.member.ApiResponse
+import xyz.jxmen.mockx.signup
 
 /**
  * 입금 API 계약 테스트. 실제 서버(RANDOM_PORT)에 HTTP로 요청하고, Testcontainers MySQL을 쓴다.
@@ -77,31 +79,6 @@ class DepositE2ETest(
             memberId: Long,
         ): ApiResponse = deposit(accountId, amount, memberId).also { it.status shouldBe 200 }
 
-        // 가입에 성공한 회원의 memberId를 돌려준다
-        fun signup(username: String): Long {
-            val response =
-                client
-                    .post()
-                    .uri("/api/members")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(
-                        mapOf(
-                            "username" to username,
-                            "nickname" to username,
-                            "password" to "pass1234",
-                            "passwordConfirm" to "pass1234",
-                        ),
-                    ).exchange { _, response ->
-                        response.statusCode.value() to response.bodyTo(String::class.java)
-                    }
-            response.first shouldBe 201
-            return (mapper.readValue<Map<String, Any?>>(response.second!!)["memberId"] as Number).toLong()
-        }
-
-        // 계좌 id는 가입 응답에 없어서 DB에서 직접 꺼낸다
-        fun accountIdOf(memberId: Long): Long =
-            jdbcTemplate.queryForObject("SELECT id FROM account WHERE member_id = ?", Long::class.java, memberId)!!
-
         fun balanceOf(accountId: Long): Long =
             jdbcTemplate.queryForObject("SELECT balance FROM account WHERE id = ?", Long::class.java, accountId)!!
 
@@ -138,8 +115,8 @@ class DepositE2ETest(
         describe("POST /api/accounts/{id}/deposit") {
             context("내 계좌에 올바른 금액을 입금하면") {
                 it("200과 계좌 id, 입금액, 입금 후 예수금을 반환한다") {
-                    val memberId = signup("Alice")
-                    val accountId = accountIdOf(memberId)
+                    val memberId = client.signup("Alice")
+                    val accountId = jdbcTemplate.accountIdOf(memberId)
 
                     val response = deposit(accountId, 10_000, memberId)
 
@@ -149,15 +126,15 @@ class DepositE2ETest(
                     response.body["balance"].asLong() shouldBe 10_000 // 가입 직후 예수금 0에서 시작
                 }
                 it("응답 본문에는 accountId, amount, balance만 있다") {
-                    val memberId = signup("Alice")
+                    val memberId = client.signup("Alice")
 
-                    val response = depositSuccessfully(accountIdOf(memberId), 10_000, memberId)
+                    val response = depositSuccessfully(jdbcTemplate.accountIdOf(memberId), 10_000, memberId)
 
                     response.body.keys shouldContainExactlyInAnyOrder listOf("accountId", "amount", "balance")
                 }
                 it("계좌의 예수금이 입금액만큼 늘고, 묶인 금액은 그대로다") {
-                    val memberId = signup("Alice")
-                    val accountId = accountIdOf(memberId)
+                    val memberId = client.signup("Alice")
+                    val accountId = jdbcTemplate.accountIdOf(memberId)
 
                     depositSuccessfully(accountId, 10_000, memberId)
 
@@ -169,8 +146,8 @@ class DepositE2ETest(
                     ) shouldBe 0
                 }
                 it("원장에 DEPOSIT 항목 1건이 입금액과 입금 후 잔액으로 기록된다") {
-                    val memberId = signup("Alice")
-                    val accountId = accountIdOf(memberId)
+                    val memberId = client.signup("Alice")
+                    val accountId = jdbcTemplate.accountIdOf(memberId)
 
                     depositSuccessfully(accountId, 10_000, memberId)
 
@@ -185,16 +162,16 @@ class DepositE2ETest(
 
             context("여러 번 입금하면") {
                 it("예수금이 누적되고, 응답의 balance는 매번 누적된 예수금이다") {
-                    val memberId = signup("Alice")
-                    val accountId = accountIdOf(memberId)
+                    val memberId = client.signup("Alice")
+                    val accountId = jdbcTemplate.accountIdOf(memberId)
 
                     depositSuccessfully(accountId, 10_000, memberId).body["balance"].asLong() shouldBe 10_000
                     depositSuccessfully(accountId, 2_500, memberId).body["balance"].asLong() shouldBe 12_500
                     depositSuccessfully(accountId, 1, memberId).body["balance"].asLong() shouldBe 12_501
                 }
                 it("예수금은 원장 금액 합계와 같고, 마지막 원장의 입금 후 잔액과도 같다") {
-                    val memberId = signup("Alice")
-                    val accountId = accountIdOf(memberId)
+                    val memberId = client.signup("Alice")
+                    val accountId = jdbcTemplate.accountIdOf(memberId)
 
                     listOf(10_000L, 2_500L, 1L).forEach { depositSuccessfully(accountId, it, memberId) }
 
@@ -216,8 +193,8 @@ class DepositE2ETest(
                     lastBalanceAfter shouldBe balanceOf(accountId)
                 }
                 it("1회 상한은 입금 1건 기준이라, 합계가 상한을 넘어도 입금된다") {
-                    val memberId = signup("Alice")
-                    val accountId = accountIdOf(memberId)
+                    val memberId = client.signup("Alice")
+                    val accountId = jdbcTemplate.accountIdOf(memberId)
 
                     depositSuccessfully(accountId, maxAmount, memberId)
                     val response = deposit(accountId, maxAmount, memberId)
@@ -234,8 +211,8 @@ class DepositE2ETest(
                     maxAmount, // 상한 $10,000
                 ) { amount ->
                     resetTables() // withData 항목은 container로 등록돼 beforeEach가 돌지 않는다
-                    val memberId = signup("Alice")
-                    val accountId = accountIdOf(memberId)
+                    val memberId = client.signup("Alice")
+                    val accountId = jdbcTemplate.accountIdOf(memberId)
 
                     val response = deposit(accountId, amount, memberId)
 
@@ -254,8 +231,8 @@ class DepositE2ETest(
                     Long.MAX_VALUE,
                 ) { amount ->
                     resetTables()
-                    val memberId = signup("Alice")
-                    val accountId = accountIdOf(memberId)
+                    val memberId = client.signup("Alice")
+                    val accountId = jdbcTemplate.accountIdOf(memberId)
 
                     val response = deposit(accountId, amount, memberId)
 
@@ -268,8 +245,8 @@ class DepositE2ETest(
 
             context("amount가 빠졌거나 null이면") {
                 it("빠진 amount가 errors에 담긴 400 INVALID_INPUT을 응답한다") {
-                    val memberId = signup("Alice")
-                    val accountId = accountIdOf(memberId)
+                    val memberId = client.signup("Alice")
+                    val accountId = jdbcTemplate.accountIdOf(memberId)
 
                     val response = depositRaw(accountId, "{}", memberId.toString())
 
@@ -277,8 +254,8 @@ class DepositE2ETest(
                     response.errorFields() shouldContain "amount"
                 }
                 it("null인 amount가 errors에 담긴 400 INVALID_INPUT을 응답한다") {
-                    val memberId = signup("Alice")
-                    val accountId = accountIdOf(memberId)
+                    val memberId = client.signup("Alice")
+                    val accountId = jdbcTemplate.accountIdOf(memberId)
 
                     val response = depositRaw(accountId, """{"amount": null}""", memberId.toString())
 
@@ -296,8 +273,8 @@ class DepositE2ETest(
                     "\"abc\"", // 숫자 아님
                 ) { rawAmount ->
                     resetTables()
-                    val memberId = signup("Alice")
-                    val accountId = accountIdOf(memberId)
+                    val memberId = client.signup("Alice")
+                    val accountId = jdbcTemplate.accountIdOf(memberId)
 
                     val response = depositRaw(accountId, """{"amount": $rawAmount}""", memberId.toString())
 
@@ -309,8 +286,8 @@ class DepositE2ETest(
 
             context("경로의 계좌 id가 숫자가 아니면") {
                 it("400 INVALID_INPUT을 응답하고, 내 계좌의 예수금과 원장은 그대로다") {
-                    val memberId = signup("Alice")
-                    val accountId = accountIdOf(memberId)
+                    val memberId = client.signup("Alice")
+                    val accountId = jdbcTemplate.accountIdOf(memberId)
 
                     val response = depositRaw("abc", """{"amount": 10000}""", memberId.toString())
 
@@ -322,8 +299,8 @@ class DepositE2ETest(
 
             context("X-Member-Id 헤더가 없으면") {
                 it("401 UNAUTHENTICATED를 응답하고, 예수금은 그대로다") {
-                    val memberId = signup("Alice")
-                    val accountId = accountIdOf(memberId)
+                    val memberId = client.signup("Alice")
+                    val accountId = jdbcTemplate.accountIdOf(memberId)
 
                     val response = depositRaw(accountId, """{"amount": 10000}""", null)
 
@@ -334,8 +311,8 @@ class DepositE2ETest(
 
             context("없는 계좌면") {
                 it("404 ACCOUNT_NOT_FOUND를 응답한다") {
-                    val memberId = signup("Alice")
-                    val missingAccountId = accountIdOf(memberId) + 1
+                    val memberId = client.signup("Alice")
+                    val missingAccountId = jdbcTemplate.accountIdOf(memberId) + 1
 
                     val response = deposit(missingAccountId, 10_000, memberId)
 
@@ -346,9 +323,9 @@ class DepositE2ETest(
 
             context("남의 계좌면") {
                 it("없는 계좌와 같은 404 ACCOUNT_NOT_FOUND를 응답하고, 그 계좌의 예수금과 원장은 그대로다") {
-                    val aliceId = signup("Alice")
-                    val bobId = signup("Bob")
-                    val bobAccountId = accountIdOf(bobId)
+                    val aliceId = client.signup("Alice")
+                    val bobId = client.signup("Bob")
+                    val bobAccountId = jdbcTemplate.accountIdOf(bobId)
 
                     val response = deposit(bobAccountId, 10_000, aliceId)
 

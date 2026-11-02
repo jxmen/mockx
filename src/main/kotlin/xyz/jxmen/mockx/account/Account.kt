@@ -77,7 +77,9 @@ class Account(
      */
     fun hold(money: Money) {
         require(money.isPositive()) { "주문할 금액은 양수여야만 합니다." }
-        require(money <= availableAmount()) { "주문 가능 금액 초과" }
+
+        // 주문가능금액 부족은 사용자가 정상적으로 만나는 상황이라 require가 아니라 422로 응답되는 예외를 던진다.
+        if (money > availableAmount()) throw InsufficientAvailableAmountException(money, availableAmount())
 
         this.holdAmount += money
     }
