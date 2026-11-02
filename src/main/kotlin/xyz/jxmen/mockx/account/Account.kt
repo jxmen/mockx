@@ -13,6 +13,12 @@ import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
 import xyz.jxmen.mockx.common.jpa.BaseTimeEntity
 
+enum class AccountType(
+    val prefixNum: String,
+) {
+    BROKERAGE("100"), // 위탁
+}
+
 @Entity
 @Table(
     name = "account",

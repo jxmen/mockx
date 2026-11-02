@@ -14,6 +14,12 @@ import jakarta.persistence.Table
 import xyz.jxmen.mockx.account.Money
 import xyz.jxmen.mockx.common.jpa.BaseTimeEntity
 
+enum class LedgerType {
+    DEPOSIT, // 입금
+
+    // 매수, 매도 나중에 추가 예정
+}
+
 /**
  * 원장. 돈의 모든 입출금 내역
  *
