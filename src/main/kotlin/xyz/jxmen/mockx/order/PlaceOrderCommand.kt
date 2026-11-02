@@ -1,6 +1,6 @@
 package xyz.jxmen.mockx.order
 
-import xyz.jxmen.mockx.account.Money
+import xyz.jxmen.mockx.common.money.Money
 
 data class PlaceOrderCommand(
     val accountId: Long,

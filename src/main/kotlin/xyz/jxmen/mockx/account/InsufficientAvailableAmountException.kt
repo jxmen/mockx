@@ -1,6 +1,7 @@
 package xyz.jxmen.mockx.account
 
 import org.springframework.http.HttpStatus
+import xyz.jxmen.mockx.common.money.Money
 import xyz.jxmen.mockx.common.web.ApiException
 
 /**

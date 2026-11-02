@@ -17,6 +17,7 @@ import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.web.client.RestClient
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import tools.jackson.module.kotlin.readValue
+import xyz.jxmen.mockx.ApiResponse
 import xyz.jxmen.mockx.TestcontainersConfiguration
 
 /**

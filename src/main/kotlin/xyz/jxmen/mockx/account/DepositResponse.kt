@@ -1,5 +1,7 @@
 package xyz.jxmen.mockx.account
 
+import xyz.jxmen.mockx.common.money.Money
+
 data class DepositResponse(
     val accountId: Long,
     val amount: Long,

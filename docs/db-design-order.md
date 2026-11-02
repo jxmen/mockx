@@ -166,7 +166,7 @@ Content-Type: application/json
   2. `side` 대소문자 정규화, "지금은 `BUY`만"은 요청 형식 규칙이고 hold는 도메인 규칙이다. 서비스는 정규화·검사를 마친 `OrderSide`만 받는다.
   3. 봇 주문 스크립트(유동성 공급)가 붙으면 웹이 아닌 진입점이 생긴다.
   4. 응답 형태가 바뀌어도 서비스와 `PlacedOrder`는 그대로다. 결과 → 응답 변환은 `PlaceOrderResponse.from`이 맡고, 변환 메서드는 항상 바깥 타입(Command, 결과, 응답 DTO)이 안쪽 타입을 아는 쪽에 둔다(`PlacedOrder.of(order, symbol)`, `Order`에는 두지 않는다).
-- 패키지: 주문의 웹 계층(`OrderController`, `PlaceOrderRequest`, `PlaceOrderResponse`)도 `order` 패키지에 둔다. URL은 `/api/accounts/{accountId}/orders`지만 컨트롤러는 `AccountController`와 나눈다. 그래서 `order` → `account`(계좌 조회, `Money`, 예외) 한 방향만 있고 `account`는 주문을 모른다.
+- 패키지: 주문의 웹 계층(`OrderController`, `PlaceOrderRequest`, `PlaceOrderResponse`)도 `order` 패키지에 둔다. URL은 `/api/accounts/{accountId}/orders`지만 컨트롤러는 `AccountController`와 나눈다. 그래서 `order` → `account`(계좌 조회, 예외) 한 방향만 있고 `account`는 주문을 모른다. `Money`는 `account`·`ledger`·`order`가 함께 쓰므로 `common.money`에 둔다.
 - 응답의 `symbol`은 `Order`에 없다(`stock_id`만 있다). 결과 타입은 이 값을 함께 담아야 한다. 구체적인 모양은 구현하며 정한다.
 
 ## 7. 매수 주문 취소

@@ -85,6 +85,7 @@ cd frontend && npm test       # 프론트 테스트 (Vitest)
   - 동시성 테스트(`{동작}ConcurrencyTest`): E2E와 같은 환경에서 동시 요청 후 불변식을 확인한다.
   - 도메인 단위 테스트(`{엔티티}Test`): Spring 없이 엔티티·값 객체의 규칙을 본다.
 - `withData` 항목은 container로 등록돼 `beforeEach`가 돌지 않는다. 테이블·목 초기화가 필요하면 각 항목 첫 줄에서 직접 부른다.
+- 패키지는 도메인별(`member`, `account`, `ledger`, `order`, `stock`)로 나누고, 그 안은 web/application/domain 같은 계층 하위 패키지 없이 평평하게 둔다. 여러 도메인이 함께 쓰는 것은 `common` 아래에 둔다. (예: `common.money.Money`, `common.web.CurrentMember`) 도메인 안에서 기능이 커지면 계층이 아니라 기능 단위로 뗀다. (예: `order/matching`)
 - 서비스 클래스는 유스케이스 하나당 하나씩 만들고 `{동작}Service`로 이름 짓는다. (예: `SignupService`, `PlaceOrderService`) 포트·어댑터는 나누지 않으므로 `UseCase` 접미사는 쓰지 않는다.
 - 사용자가 직접 호출하지 않고 다른 서비스가 쓰는 부품은 `-er` 형태로 짓는다. (예: `AccountOpener`)
 - 서비스 입력은 기본적으로 웹 요청 DTO를 그대로 받는다. 다음 중 하나에 해당하면 `{동작}Command`로 받고, 서비스는 웹 응답 DTO 대신 도메인 결과를 돌려준다. 요청·응답 DTO 변환은 컨트롤러가 맡는다. (예: `PlaceOrderService`)

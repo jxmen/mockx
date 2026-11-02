@@ -14,6 +14,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.web.client.RestClient
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import tools.jackson.module.kotlin.readValue
+import xyz.jxmen.mockx.ApiResponse
 import xyz.jxmen.mockx.TestcontainersConfiguration
 import xyz.jxmen.mockx.accountIdOf
 import xyz.jxmen.mockx.signup

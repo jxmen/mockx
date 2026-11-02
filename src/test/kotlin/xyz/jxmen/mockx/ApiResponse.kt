@@ -1,4 +1,4 @@
-package xyz.jxmen.mockx.member
+package xyz.jxmen.mockx
 
 import org.springframework.http.HttpHeaders
 

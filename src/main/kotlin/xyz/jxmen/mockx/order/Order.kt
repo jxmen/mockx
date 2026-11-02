@@ -9,7 +9,7 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Index
 import jakarta.persistence.Table
-import xyz.jxmen.mockx.account.Money
+import xyz.jxmen.mockx.common.money.Money
 import xyz.jxmen.mockx.common.jpa.BaseTimeEntity
 import java.time.Instant
 import java.time.temporal.ChronoUnit

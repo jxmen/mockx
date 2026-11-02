@@ -12,6 +12,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
 import xyz.jxmen.mockx.common.jpa.BaseTimeEntity
+import xyz.jxmen.mockx.common.money.Money
 
 enum class AccountType(
     val prefixNum: String,

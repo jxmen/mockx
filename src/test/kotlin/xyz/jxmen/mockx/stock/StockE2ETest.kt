@@ -15,7 +15,7 @@ import org.springframework.web.client.RestClient
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import tools.jackson.module.kotlin.readValue
 import xyz.jxmen.mockx.TestcontainersConfiguration
-import xyz.jxmen.mockx.member.ApiResponse
+import xyz.jxmen.mockx.ApiResponse
 
 /**
  * 종목 목록·상세 조회 API 계약 테스트. 실제 서버(RANDOM_PORT)에 HTTP로 요청하고, Testcontainers MySQL을 쓴다.

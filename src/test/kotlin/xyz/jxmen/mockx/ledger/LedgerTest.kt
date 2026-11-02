@@ -3,7 +3,7 @@ package xyz.jxmen.mockx.ledger
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
-import xyz.jxmen.mockx.account.Money
+import xyz.jxmen.mockx.common.money.Money
 
 class LedgerTest :
     DescribeSpec({

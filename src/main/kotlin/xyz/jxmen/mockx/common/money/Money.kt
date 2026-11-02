@@ -1,4 +1,4 @@
-package xyz.jxmen.mockx.account
+package xyz.jxmen.mockx.common.money
 
 import jakarta.persistence.Embeddable
 

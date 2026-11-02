@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import xyz.jxmen.mockx.common.web.InvalidInputException
-import xyz.jxmen.mockx.member.CurrentMember
+import xyz.jxmen.mockx.common.web.CurrentMember
 
 @RestController
 @RequestMapping("/api/accounts/{accountId}/orders")

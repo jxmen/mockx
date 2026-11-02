@@ -18,7 +18,7 @@ import tools.jackson.module.kotlin.readValue
 import xyz.jxmen.mockx.TestcontainersConfiguration
 import xyz.jxmen.mockx.accountIdOf
 import xyz.jxmen.mockx.fundAccount
-import xyz.jxmen.mockx.member.ApiResponse
+import xyz.jxmen.mockx.ApiResponse
 import xyz.jxmen.mockx.signup
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

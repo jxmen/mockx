@@ -2,6 +2,7 @@ package xyz.jxmen.mockx.account
 
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import xyz.jxmen.mockx.common.money.Money
 import xyz.jxmen.mockx.ledger.Ledger
 import xyz.jxmen.mockx.ledger.LedgerRepository
 

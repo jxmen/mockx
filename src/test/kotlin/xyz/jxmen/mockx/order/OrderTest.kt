@@ -7,7 +7,7 @@ import io.kotest.matchers.comparables.shouldBeLessThanOrEqualTo
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import xyz.jxmen.mockx.account.Money
+import xyz.jxmen.mockx.common.money.Money
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 

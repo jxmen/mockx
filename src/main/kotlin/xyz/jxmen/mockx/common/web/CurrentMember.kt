@@ -1,4 +1,4 @@
-package xyz.jxmen.mockx.member
+package xyz.jxmen.mockx.common.web
 
 @Target(AnnotationTarget.VALUE_PARAMETER)
 @Retention(AnnotationRetention.RUNTIME)

@@ -3,6 +3,7 @@ package xyz.jxmen.mockx.account
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
+import xyz.jxmen.mockx.common.money.Money
 
 class AccountTest :
     DescribeSpec({
