@@ -176,6 +176,33 @@ class SignupE2ETest(
                 }
             }
 
+            // nickname에는 UNIQUE 제약이 없다 (docs/db-design-member.md 3장)
+            context("이미 있는 nickname이면") {
+                it("username이 다르면 둘 다 201로 가입되고, nickname이 같은 회원이 2명 저장된다") {
+                    signupSuccessfully(validRequest(username = "Alice", nickname = "앨리스"))
+
+                    val response = signup(validRequest(username = "Bob", nickname = "앨리스"))
+
+                    response.status shouldBe 201
+                    response.body["nickname"] shouldBe "앨리스"
+                    jdbcTemplate.queryForList("SELECT nickname FROM member", String::class.java) shouldBe
+                        listOf("앨리스", "앨리스")
+                    countRows("account") shouldBe 2
+                }
+                it("대소문자만 다른 nickname도 둘 다 가입되고, 입력한 그대로 저장된다") {
+                    signupSuccessfully(validRequest(username = "user1", nickname = "Alice"))
+
+                    val response = signup(validRequest(username = "user2", nickname = "alice"))
+
+                    response.status shouldBe 201
+                    // username과 달리 collation에 따른 중복 판정이 없고, 대소문자도 정규화하지 않는다
+                    jdbcTemplate.queryForList(
+                        "SELECT nickname FROM member ORDER BY id",
+                        String::class.java,
+                    ) shouldBe listOf("Alice", "alice")
+                }
+            }
+
             context("입력 형식이 틀리면") {
                 it("400 INVALID_INPUT을 응답하고, errors에 틀린 필드가 담긴다") {
                     val response = signup(validRequest(username = "a"))

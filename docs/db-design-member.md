@@ -253,9 +253,9 @@ Content-Type: application/problem+json
 - [x] 가입하면 Member와 위탁계좌 1개가 생성되고, 비밀번호는 해시로 저장된다
 - [x] password와 passwordConfirm이 다르면 400 `PASSWORD_NOT_MATCHED`
 - [x] 이미 있는 username이면 409. `Alice`가 있을 때 `alice`로 가입해도 409 (collation 검증이므로 Testcontainers MySQL로 테스트)
-- [ ] nickname 중복은 허용
+- [x] nickname 중복은 허용. 대소문자만 달라도 입력한 그대로 저장된다
 - [x] 계좌 생성이 실패하면 Member도 롤백 (계좌번호 순번도 증가하지 않음)
-- [ ] 같은 username으로 동시에 가입하면 1건만 성공
+- [x] 같은 username으로 동시에 가입하면 1건만 성공하고, 나머지는 모두 409(`DuplicateUsernameException`). 대소문자만 다른 username으로 동시에 가입해도 1건만 성공 (`SignupConcurrencyTest`)
 
 ### 인증
 
