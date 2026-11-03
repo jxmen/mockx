@@ -7,32 +7,44 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import xyz.jxmen.mockx.common.web.InvalidInputException
+import xyz.jxmen.mockx.common.idempotency.IdempotencyKey
+import xyz.jxmen.mockx.common.idempotency.IdempotentExecutor
 import xyz.jxmen.mockx.common.web.CurrentMember
+import xyz.jxmen.mockx.common.web.InvalidInputException
 
 @RestController
 @RequestMapping("/api/accounts/{accountId}/orders")
 class OrderController(
     private val placeOrderService: PlaceOrderService,
     private val cancelOrderService: CancelOrderService,
-    private val getOrdersService: GetOrdersService
+    private val getOrdersService: GetOrdersService,
+    private val idempotentExecutor: IdempotentExecutor
 ) {
 
     @PostMapping
     fun placeOrder(
+        @RequestHeader(value = "Idempotency-Key", required = true) key: String,
         @PathVariable accountId: Long,
         @CurrentMember memberId: Long,
         @RequestBody @Valid request: PlaceOrderRequest
     ): ResponseEntity<PlaceOrderResponse> {
         if (request.side == OrderSide.SELL) throw InvalidInputException("side", "매도 주문은 아직 지원하지 않습니다.")
 
-        val placedOrder = placeOrderService.placeOrder(request.toCommand(accountId, memberId))
+        val idempotencyKey = IdempotencyKey(memberId = memberId, key = key)
+        val command = request.toCommand(accountId, memberId)
+        val result = idempotentExecutor.execute(key = idempotencyKey, fp = command) {
+            placeOrderService.placeOrder(command)
+        }
 
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(PlaceOrderResponse.from(placedOrder))
+            .body(PlaceOrderResponse.from(result.data))
+            .apply {
+                if (result.replayed) headers.add("Idempotent-Replayed", "true")
+            }
     }
 
     @PostMapping("/{orderId}/cancel")

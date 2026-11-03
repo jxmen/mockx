@@ -81,6 +81,7 @@ Kotlin은 테스트가 없는 클래스·메서드를 참조하면 **테스트 �
 
 - Kotest `DescribeSpec`, `describe` → `context("~하면")` → `it("~한다")` 구조. 이름은 한국어 문장이다.
 - 경계값처럼 입력만 다른 케이스는 `withData`로 묶는다. `withData` 항목에는 `beforeEach`가 돌지 않으므로 항목 안에서 `resetTables()`를 호출한다. (기존 코드의 주석 참고)
+- 주문 접수 요청에는 `Idempotency-Key` 헤더를 붙이고, 키는 `newIdempotencyKey()`(UUIDv7)로 주문 의도마다 새로 만든다. 멱등성 캐시는 테이블을 비워도 남아서 고정 키를 쓰면 앞 테스트의 응답이 돌아온다.
 - 에러 응답은 RFC 9457 형식을 검증한다: 상태 코드, `application/problem+json`, `status`, `code`(대문자 스네이크), `instance`.
 - 실패 케이스는 응답만 보지 말고 **부작용이 없는지**(예수금, hold, 원장 건수)도 확인한다.
 - 기대값 숫자는 계산 근거를 주석으로 남긴다. (예: `// 10,000 + 2,500 + 1`)

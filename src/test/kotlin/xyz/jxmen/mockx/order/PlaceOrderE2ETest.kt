@@ -18,6 +18,7 @@ import tools.jackson.module.kotlin.readValue
 import xyz.jxmen.mockx.TestcontainersConfiguration
 import xyz.jxmen.mockx.accountIdOf
 import xyz.jxmen.mockx.fundAccount
+import xyz.jxmen.mockx.newIdempotencyKey
 import xyz.jxmen.mockx.ApiResponse
 import xyz.jxmen.mockx.signup
 
@@ -42,7 +43,10 @@ class PlaceOrderE2ETest(
             client
                 .post()
                 .uri("/api/accounts/$accountIdPath/orders")
-                .headers { headers -> memberIdHeader?.let { headers.set("X-Member-Id", it) } }
+                .headers { headers ->
+                    memberIdHeader?.let { headers.set("X-Member-Id", it) }
+                    headers.set("Idempotency-Key", newIdempotencyKey())
+                }
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(json.toByteArray(Charsets.UTF_8))
                 .exchange { _, response ->

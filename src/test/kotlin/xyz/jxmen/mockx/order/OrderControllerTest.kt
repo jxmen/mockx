@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.post
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import tools.jackson.module.kotlin.readValue
+import xyz.jxmen.mockx.newIdempotencyKey
 
 /**
  * 주문 접수 API의 웹 계층(입력 검증, 인증 헤더, 경로 변수, 요청 → Command 변환)만 검증한다.
@@ -57,6 +58,7 @@ class OrderControllerTest(
                         contentType = MediaType.APPLICATION_JSON
                         content = json.toByteArray(Charsets.UTF_8)
                         memberIdHeader?.let { header("X-Member-Id", it) }
+                        header("Idempotency-Key", newIdempotencyKey())
                     }.andReturn()
                     .response
             val body = response.getContentAsString(Charsets.UTF_8)

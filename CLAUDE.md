@@ -41,6 +41,7 @@
 - 비밀번호: `spring-security-crypto`의 BCrypt만 쓴다. Spring Security 자동 설정은 켜지 않는다
 - 테스트: Kotest 6(`DescribeSpec`, JUnit5 플랫폼에서 실행) + Testcontainers(MySQL), 목 객체는 mockk
 - 프론트: React + Vite + TypeScript, 테스트는 Vitest
+- Idempotency-Key 저장소: Caffeine 인메모리 캐시(TTL 24시간). Redis 도입 시 옮긴다
 - Redis, Kafka는 MVP 이후 하나씩 도입 예정 (사용자는 Redis/Kafka 경험이 거의 없음)
 - 패키지: `xyz.jxmen.mockx`, 배포 예정 도메인: `mockx.jxmen.xyz`
 
@@ -62,7 +63,7 @@
 - `db-design-account.md`: 계좌, 계좌번호, 입금
 - `ledger-single-vs-double-entry.md`: 원장 방식 결정(단식부기)과 `ledger` 테이블
 - `db-design-stock.md`: 종목 (작성 중, 금액 단위 등 결정 보류 항목 있음)
-- `db-design-order.md`: 매수 주문 접수·취소, hold·release (결정 보류 항목 있음)
+- `db-design-order.md`: 매수 주문 접수·취소, hold·release, Idempotency-Key 중복 방지 (결정 보류 항목 있음)
 
 ## 명령어
 
@@ -85,6 +86,7 @@ cd frontend && npm test       # 프론트 테스트 (Vitest)
   - 동시성 테스트(`{동작}ConcurrencyTest`): E2E와 같은 환경에서 동시 요청 후 불변식을 확인한다.
   - 도메인 단위 테스트(`{엔티티}Test`): Spring 없이 엔티티·값 객체의 규칙을 본다.
 - `withData` 항목은 container로 등록돼 `beforeEach`가 돌지 않는다. 테이블·목 초기화가 필요하면 각 항목 첫 줄에서 직접 부른다.
+- 주문 접수 요청에는 `Idempotency-Key` 헤더를 붙이고, 키는 `newIdempotencyKey()`(UUIDv7)로 주문 의도마다 새로 만든다. 멱등성 캐시는 테이블을 비워도 남아서, 고정 키를 쓰면 앞 테스트의 응답이 재응답으로 돌아온다.
 - 패키지는 도메인별(`member`, `account`, `ledger`, `order`, `stock`)로 나누고, 그 안은 web/application/domain 같은 계층 하위 패키지 없이 평평하게 둔다. 여러 도메인이 함께 쓰는 것은 `common` 아래에 둔다. (예: `common.money.Money`, `common.web.CurrentMember`) 도메인 안에서 기능이 커지면 계층이 아니라 기능 단위로 뗀다. (예: `order/matching`)
 - 서비스 클래스는 유스케이스 하나당 하나씩 만들고 `{동작}Service`로 이름 짓는다. (예: `SignupService`, `PlaceOrderService`) 포트·어댑터는 나누지 않으므로 `UseCase` 접미사는 쓰지 않는다.
 - 사용자가 직접 호출하지 않고 다른 서비스가 쓰는 부품은 `-er` 형태로 짓는다. (예: `AccountOpener`)

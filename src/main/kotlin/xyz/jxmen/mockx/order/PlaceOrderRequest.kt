@@ -24,7 +24,7 @@ data class PlaceOrderRequest(
         return PlaceOrderCommand(
             accountId = accountId,
             memberId = memberId,
-            symbol = symbol,
+            symbol = symbol.uppercase(),
             side = side,
             price = price,
             quantity = quantity,

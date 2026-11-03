@@ -14,6 +14,7 @@ import org.springframework.web.client.RestClient
 import xyz.jxmen.mockx.TestcontainersConfiguration
 import xyz.jxmen.mockx.accountIdOf
 import xyz.jxmen.mockx.fundAccount
+import xyz.jxmen.mockx.newIdempotencyKey
 import xyz.jxmen.mockx.signup
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CountDownLatch
@@ -64,6 +65,7 @@ class PlaceOrderConcurrencyTest(
                 .post()
                 .uri("/api/accounts/$accountId/orders")
                 .header("X-Member-Id", memberId.toString())
+                .header("Idempotency-Key", newIdempotencyKey()) // 요청마다 다른 주문이므로 키도 다르다
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(mapOf("symbol" to "MU", "side" to "BUY", "price" to price, "quantity" to quantity))
                 .exchange { _, response -> response.statusCode.value() }

@@ -15,6 +15,7 @@ import tools.jackson.module.kotlin.readValue
 import xyz.jxmen.mockx.TestcontainersConfiguration
 import xyz.jxmen.mockx.accountIdOf
 import xyz.jxmen.mockx.fundAccount
+import xyz.jxmen.mockx.newIdempotencyKey
 import xyz.jxmen.mockx.signup
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CountDownLatch
@@ -68,6 +69,7 @@ class CancelOrderConcurrencyTest(
                     .post()
                     .uri("/api/accounts/$accountId/orders")
                     .header("X-Member-Id", memberId.toString())
+                    .header("Idempotency-Key", newIdempotencyKey())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(mapOf("symbol" to symbol, "side" to "BUY", "price" to price, "quantity" to quantity))
                     .exchange { _, response -> response.statusCode.value() to response.bodyTo(String::class.java) }
