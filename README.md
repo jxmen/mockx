@@ -10,6 +10,10 @@
 
 ![mockx 첫 화면](docs/images/landing.png)
 
+회원가입 → 입금 → 종목 조회 → 매수 주문(hold) → 취소(release) 시연:
+
+![mockx 시연](docs/images/demo.gif)
+
 ## 지키는 규칙
 
 | 규칙 | 검증 |
