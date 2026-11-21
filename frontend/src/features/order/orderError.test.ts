@@ -128,6 +128,33 @@ describe('toPlaceOrderErrorFeedback', () => {
     expect(others).toEqual(missing)
   })
 
+  it('409 IDEMPOTENCY_KEY_IN_PROGRESS는 서버 detail(키 값 포함) 대신 화면이 만든 문구를 배너로 보여 주고 결과를 모른다고 본다', () => {
+    const key = '0193f1a2-7c4e-7b8a-9d10-1234567890ab'
+    const detail = `Idempotency-Key '${key}'의 요청이 아직 처리 중입니다.`
+    const feedback = toPlaceOrderErrorFeedback(problemError(409, 'IDEMPOTENCY_KEY_IN_PROGRESS', detail))
+    expect(feedback.banner).not.toBeNull()
+    expect(feedback.banner).toBeTruthy()
+    expect(feedback.banner).not.toBe(detail)
+    expect(feedback.banner).not.toContain(key)
+    expect(feedback.fieldErrors).toEqual({})
+    expect(feedback.uncertain).toBe(true)
+  })
+
+  it('422 IDEMPOTENCY_KEY_REUSED는 서버 detail 대신 화면이 만든 문구를 배너로 보여 주고 확정된 결과로 본다', () => {
+    const feedback = toPlaceOrderErrorFeedback(problemError(422, 'IDEMPOTENCY_KEY_REUSED', SERVER_DETAIL))
+    expect(feedback.banner).not.toBeNull()
+    expect(feedback.banner).toBeTruthy()
+    expect(feedback.banner).not.toBe(SERVER_DETAIL)
+    expect(feedback.fieldErrors).toEqual({})
+    expect(feedback.uncertain).toBe(false)
+  })
+
+  it('IDEMPOTENCY_KEY_IN_PROGRESS와 IDEMPOTENCY_KEY_REUSED는 다른 문구로 안내한다', () => {
+    const inProgress = toPlaceOrderErrorFeedback(problemError(409, 'IDEMPOTENCY_KEY_IN_PROGRESS', SERVER_DETAIL))
+    const reused = toPlaceOrderErrorFeedback(problemError(422, 'IDEMPOTENCY_KEY_REUSED', SERVER_DETAIL))
+    expect(inProgress.banner).not.toBe(reused.banner)
+  })
+
   it('모르는 4xx code면 서버 detail을 배너로 보여 준다', () => {
     expect(toPlaceOrderErrorFeedback(problemError(409, 'SOMETHING', '충돌'))).toEqual({
       fieldErrors: {},
@@ -163,6 +190,17 @@ describe('toPlaceOrderErrorFeedback', () => {
     expect(feedback.fieldErrors).toEqual({})
     expect(feedback.banner).toBeTruthy()
     expect(feedback.banner).not.toBe('서버 오류')
+  })
+
+  // 다시 눌러도 같은 Idempotency-Key로 보내므로 두 번 접수되지 않는다는 뜻이 배너에 드러나야 한다. 핵심어 '같은 키', '두 번'
+  it.each([
+    ['5xx', problemError(500, undefined, '서버 오류')],
+    ['본문이 Problem Details가 아닌 5xx', new ApiError(502, null)],
+    ['네트워크 오류', new NetworkError()],
+  ])('%s 배너는 다시 눌러도 같은 키로 보내 두 번 접수되지 않는다고 안내한다', (_, error) => {
+    const banner = toPlaceOrderErrorFeedback(error).banner
+    expect(banner).toContain('같은 키')
+    expect(banner).toContain('두 번')
   })
 
   it.each([

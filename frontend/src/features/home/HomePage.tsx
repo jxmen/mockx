@@ -104,10 +104,11 @@ const MONEY_RULES: MoneyRule[] = [
   },
   {
     rule: '같은 주문 요청은 한 번만 처리해요',
-    status: 'planned',
+    status: 'done',
     proof: (
       <>
-        <code>Idempotency-Key</code> 헤더로 재시도와 중복 클릭을 걸러요
+        같은 <code>Idempotency-Key</code>로 다시 보내면 첫 응답을 돌려줘요. 같은 키 동시 요청 100건도 주문 1건 (
+        <code>PlaceOrderIdempotencyConcurrencyTest</code>)
       </>
     ),
   },
@@ -131,7 +132,7 @@ type ProgressItem = {
   docs?: DocLink[]
 }
 
-// docs/ 설계 문서의 작업 목록과 src/test의 테스트 기준(2026-11-01). 기능을 끝내면 여기도 고친다
+// docs/ 설계 문서의 작업 목록과 src/test의 테스트 기준(2026-11-20). 기능을 끝내면 여기도 고친다
 const PROGRESS: ProgressItem[] = [
   {
     area: '회원가입·계좌 개설',
@@ -188,6 +189,17 @@ const PROGRESS: ProgressItem[] = [
     docs: [{ label: '주문 설계', file: 'design/order.md' }],
   },
   {
+    area: '중복 주문 방지',
+    status: 'done',
+    detail: (
+      <>
+        <code>Idempotency-Key</code>로 같은 주문 요청을 한 번만 처리(Caffeine, TTL 24시간). 주문 화면은 네트워크 오류·5xx일 때
+        같은 키로 다시 보내요 (<code>PlaceOrderIdempotencyE2ETest</code>)
+      </>
+    ),
+    docs: [{ label: '주문 설계 15장', file: 'design/order.md' }],
+  },
+  {
     area: '주문 상태 머신',
     status: 'planned',
     detail: '접수 → 취소부터 시작해 매칭 엔진 단계에서 부분 체결·체결을 더함. 허용되지 않은 전이는 예외로 막음',
@@ -198,7 +210,6 @@ const PROGRESS: ProgressItem[] = [
     detail:
       '같은 계좌에 매수 1,000건을 동시에 보내 락 없이 초과 매수를 재현한 뒤, 비관적 락·낙관적 락+재시도·Redis 분산 락을 TPS·실패율·p99 지연 시간으로 비교',
   },
-  { area: '중복 주문 방지', status: 'planned', detail: 'Idempotency-Key 헤더로 같은 주문 요청을 한 번만 처리' },
   {
     area: '시세 수집 워커',
     status: 'planned',

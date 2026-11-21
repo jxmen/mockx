@@ -42,9 +42,19 @@ type RequestOptions = {
   /** 개발용 인증 스텁. 값이 있으면 X-Member-Id 헤더로 보낸다. docs/design/member.md 5장 */
   memberId?: string | null
   signal?: AbortSignal
+  /** 요청마다 붙일 헤더(예: Idempotency-Key). 기본 헤더(Accept, Content-Type, X-Member-Id)를 만든 뒤 합친다 */
+  headers?: Record<string, string>
 }
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  return (await apiRequestWithHeaders<T>(path, options)).data
+}
+
+/** apiRequest와 같고, 응답 헤더(예: Idempotent-Replayed)도 함께 돌려준다 */
+export async function apiRequestWithHeaders<T>(
+  path: string,
+  options: RequestOptions = {},
+): Promise<{ data: T; headers: Headers }> {
   const headers: Record<string, string> = { Accept: 'application/json, application/problem+json' }
   if (options.body !== undefined) {
     headers['Content-Type'] = 'application/json'
@@ -52,6 +62,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   if (options.memberId) {
     headers['X-Member-Id'] = options.memberId
   }
+  Object.assign(headers, options.headers)
 
   let response: Response
   try {
@@ -72,7 +83,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   if (!response.ok) {
     throw new ApiError(response.status, await readProblem(response))
   }
-  return (await response.json()) as T
+  return { data: (await response.json()) as T, headers: response.headers }
 }
 
 async function readProblem(response: Response): Promise<ProblemDetail | null> {

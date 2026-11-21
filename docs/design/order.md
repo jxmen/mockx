@@ -453,7 +453,7 @@ Content-Type: application/json
 - [x] 키 등록·완료·삭제 구현 (`IdempotentExecutor`, 위 두 테스트 통과)
 - [x] 주문 접수를 호출하는 기존 테스트 6개에 키 헤더 추가 (`PlaceOrderE2ETest`, `OrderControllerTest`, `PlaceOrderConcurrencyTest`, `CancelOrderE2ETest`, `CancelOrderConcurrencyTest`, `GetOrdersE2ETest`)
 - [x] `OrderControllerTest` 컨텍스트에 멱등성 빈 등록 (`OrderServiceMockConfig`)
-- [ ] 프론트 주문 화면: 키 생성·재시도 시 재사용·확정 응답 후 폐기 (15장 "클라이언트")
+- [x] 프론트 주문 화면: 키 생성·재시도 시 재사용·확정 응답 후 폐기 (15장 "클라이언트")
 
 ## 15. 중복 주문 방지 (Idempotency-Key)
 

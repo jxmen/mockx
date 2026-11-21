@@ -9,7 +9,7 @@ import {
   type OrderItem,
   type OrderStatus,
   type PlaceOrderRequest,
-  type PlaceOrderResponse,
+  type PlaceOrderResult,
 } from '../../api/orders'
 import { getStocks, type StockSummary } from '../../api/stocks'
 import { useMemberId } from '../../auth/memberIdContext'
@@ -18,6 +18,7 @@ import { formatCents } from '../../lib/money'
 import { pageTitle } from '../../lib/pageTitle'
 import { toMyInfoErrorMessage } from '../me/myInfoError'
 import { ErrorIcon, FormField } from '../signup/FormField'
+import { shouldReuseIdempotencyKey } from './idempotencyKey'
 import { ORDER_STATUS_FILTERS, statusFilterToQuery, type OrderStatusFilter } from './orderFilter'
 import {
   toCancelOrderErrorFeedback,
@@ -38,6 +39,9 @@ type OrdersResult =
   | { requestKey: string; path: string; status: 'error'; message: string }
 
 type FieldErrors = Partial<Record<PlaceOrderField, string>>
+
+/** 개발 모드 "직전 키 다시 쓰기"용. 201을 받은 키와 그때 입력값 */
+type LastAccepted = { key: string; symbolInput: string; priceInput: string; quantityInput: string }
 
 /** 개발 모드에서 클라이언트 검증을 끄면 보낼 수 있는 side. SELL → 400(field=side), buy → 서버가 BUY로 바꿔 201 */
 const RAW_SIDES = ['BUY', 'SELL', 'buy'] as const
@@ -234,15 +238,22 @@ function OrderForm({ memberId, account, initialSymbol, onPlaced }: OrderFormProp
   const [serverErrors, setServerErrors] = useState<FieldErrors>({})
   const [banner, setBanner] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
-  const [lastOrder, setLastOrder] = useState<PlaceOrderResponse | null>(null)
+  const [lastOrder, setLastOrder] = useState<PlaceOrderResult | null>(null)
   const [stocksState, setStocksState] = useState<StocksState>({ status: 'loading' })
   // 개발 모드에서 서버 검증(400 INVALID_INPUT)을 직접 확인하기 위한 값
   const [skipClientValidation, setSkipClientValidation] = useState(false)
   const [rawSide, setRawSide] = useState<(typeof RAW_SIDES)[number]>('BUY')
+  // 개발 모드에서 멱등성(재응답 201, 422 IDEMPOTENCY_KEY_REUSED)을 직접 확인하기 위한 값.
+  // 201을 받은 키만 둔다. 서버는 실패한 요청의 키를 지우므로, 실패한 키를 다시 쓰면 새 주문으로 접수된다
+  const [lastAccepted, setLastAccepted] = useState<LastAccepted | null>(null)
+  const [reuseLastKey, setReuseLastKey] = useState(false)
 
   const symbolRef = useRef<HTMLInputElement>(null)
   const priceRef = useRef<HTMLInputElement>(null)
   const quantityRef = useRef<HTMLInputElement>(null)
+  // 지금 주문 의도의 Idempotency-Key. 결과를 모르는 실패면 다음 클릭에 같은 키로 보낸다(idempotencyKey.ts).
+  // 렌더와 무관하고 화면 메모리에만 두면 되므로 상태가 아니라 ref로 든다
+  const idempotencyKeyRef = useRef<string | null>(null)
 
   // 종목이 채워진 채로 들어오면 바로 가격을 입력할 수 있게 한다
   useEffect(() => {
@@ -302,6 +313,8 @@ function OrderForm({ memberId, account, initialSymbol, onPlaced }: OrderFormProp
 
   function changeField(field: PlaceOrderField, setter: (value: string) => void, value: string) {
     setter(value)
+    // 보내는 내용이 바뀌면 다른 주문 의도다. 다음 클릭은 새 키로 보낸다
+    idempotencyKeyRef.current = null
     setServerErrors((prev) => (prev[field] === undefined ? prev : { ...prev, [field]: undefined }))
     setLastOrder(null)
   }
@@ -334,8 +347,8 @@ function OrderForm({ memberId, account, initialSymbol, onPlaced }: OrderFormProp
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    // 응답을 기다리는 동안 다시 누르면 같은 주문이 두 번 나가 hold도 두 번 잡힌다.
-    // 서버에 Idempotency-Key가 아직 없으므로 화면에서라도 막는다
+    // 응답을 기다리는 동안 다시 누르는 것은 pending으로 막는다.
+    // 막지 못해 두 번 나가도 같은 Idempotency-Key라 서버가 한 번만 접수한다(뒤 요청은 409 IN_PROGRESS 또는 재응답)
     if (pending) {
       return
     }
@@ -349,17 +362,32 @@ function OrderForm({ memberId, account, initialSymbol, onPlaced }: OrderFormProp
       return
     }
 
+    // 개발 모드 "직전 키 다시 쓰기"가 켜져 있으면 지금 내용과 상관없이 직전에 201을 받은 키로 보낸다
+    const reusing = reuseLastKey && lastAccepted !== null
+    const idempotencyKey = reusing ? lastAccepted.key : (idempotencyKeyRef.current ?? crypto.randomUUID())
+    idempotencyKeyRef.current = idempotencyKey
+
     setPending(true)
     try {
-      const response = await placeOrder(account.id, request, memberId)
-      setLastOrder(response)
-      setSymbolInput('')
-      setPriceInput('')
-      setQuantityInput('')
-      setTouched({})
+      const result = await placeOrder(account.id, request, memberId, idempotencyKey)
+      // 확정된 결과. 다음 주문은 새 키로 보낸다
+      idempotencyKeyRef.current = null
+      setLastOrder(result)
+      setLastAccepted({ key: idempotencyKey, symbolInput, priceInput, quantityInput })
+      // 직전 키를 다시 쓰는 중이면 같은 내용·바꾼 내용을 이어서 보내 볼 수 있게 입력값을 남긴다
+      if (!reusing) {
+        setSymbolInput('')
+        setPriceInput('')
+        setQuantityInput('')
+        setTouched({})
+      }
       setServerErrors({})
       onPlaced()
     } catch (error) {
+      // 결과를 모르면 키를 그대로 둔다. 응답을 기다리는 동안 입력을 바꿔 이미 버린 키는 되살리지 않는다
+      if (!shouldReuseIdempotencyKey(error)) {
+        idempotencyKeyRef.current = null
+      }
       const feedback = toPlaceOrderErrorFeedback(error)
       setServerErrors(feedback.fieldErrors)
       setBanner(feedback.banner)
@@ -386,10 +414,19 @@ function OrderForm({ memberId, account, initialSymbol, onPlaced }: OrderFormProp
       {lastOrder !== null && (
         <div role="status" className="notice">
           <CheckIcon />
-          <span>
-            주문 #{lastOrder.orderId} 접수: {lastOrder.symbol} {lastOrder.quantity.toLocaleString('en-US')}주 ×{' '}
-            {formatCents(lastOrder.price)}. 주문 금액 {formatCents(lastOrder.price * lastOrder.quantity)}이 묶였어요.
-          </span>
+          {lastOrder.replayed ? (
+            // 같은 키·같은 내용을 다시 보냈다. 서버가 새로 접수하지 않고 첫 응답을 돌려줬다
+            <span>
+              재응답(Idempotent-Replayed: true): 주문 #{lastOrder.order.orderId}은 이미 접수된 주문이라 새로 접수하지
+              않았어요. 주문 목록과 묶인 금액(hold)도 그대로예요.
+            </span>
+          ) : (
+            <span>
+              주문 #{lastOrder.order.orderId} 접수: {lastOrder.order.symbol}{' '}
+              {lastOrder.order.quantity.toLocaleString('en-US')}주 × {formatCents(lastOrder.order.price)}. 주문 금액{' '}
+              {formatCents(lastOrder.order.price * lastOrder.order.quantity)}이 묶였어요.
+            </span>
+          )}
         </div>
       )}
 
@@ -485,7 +522,11 @@ function OrderForm({ memberId, account, initialSymbol, onPlaced }: OrderFormProp
             <input
               type="checkbox"
               checked={skipClientValidation}
-              onChange={(event) => setSkipClientValidation(event.target.checked)}
+              onChange={(event) => {
+                // 보내는 내용이 바뀌므로 다음 클릭은 새 키로 보낸다
+                idempotencyKeyRef.current = null
+                setSkipClientValidation(event.target.checked)
+              }}
             />
             <span>
               클라이언트 검증 끄기 (가격을 센트로 바꾸지 않고 입력값 그대로 보내 서버 검증 확인. 소수, 음수, 문자, 빈 값도 보냄)
@@ -497,7 +538,10 @@ function OrderForm({ memberId, account, initialSymbol, onPlaced }: OrderFormProp
               <select
                 className="header__dev-input"
                 value={rawSide}
-                onChange={(event) => setRawSide(event.target.value as (typeof RAW_SIDES)[number])}
+                onChange={(event) => {
+                  idempotencyKeyRef.current = null
+                  setRawSide(event.target.value as (typeof RAW_SIDES)[number])
+                }}
               >
                 {RAW_SIDES.map((side) => (
                   <option key={side} value={side}>
@@ -508,6 +552,29 @@ function OrderForm({ memberId, account, initialSymbol, onPlaced }: OrderFormProp
               {serverErrors.side !== undefined && <span className="field__hint--error">{serverErrors.side}</span>}
             </label>
           )}
+          <label className="dev-toggle">
+            <input
+              type="checkbox"
+              checked={reuseLastKey}
+              disabled={lastAccepted === null}
+              onChange={(event) => {
+                const checked = event.target.checked
+                setReuseLastKey(checked)
+                // 켜면 직전에 접수된 주문 내용을 채운다. 그대로 보내면 재응답 201, 바꿔 보내면 422 IDEMPOTENCY_KEY_REUSED
+                if (checked && lastAccepted !== null) {
+                  setSymbolInput(lastAccepted.symbolInput)
+                  setPriceInput(lastAccepted.priceInput)
+                  setQuantityInput(lastAccepted.quantityInput)
+                  setServerErrors({})
+                  setBanner(null)
+                }
+              }}
+            />
+            <span>
+              직전 키 다시 쓰기 (마지막으로 201을 받은 Idempotency-Key로 보냄. 같은 내용 → 재응답 201, 내용을 바꾸면 → 422
+              IDEMPOTENCY_KEY_REUSED.{lastAccepted === null ? ' 주문이 한 번 접수되면 켤 수 있어요.' : ''})
+            </span>
+          </label>
         </fieldset>
       )}
     </form>

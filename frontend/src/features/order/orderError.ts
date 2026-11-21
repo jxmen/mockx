@@ -9,7 +9,7 @@ export type PlaceOrderErrorFeedback = {
   fieldErrors: Partial<Record<PlaceOrderField, string>>
   /** 폼 상단 배너. 입력칸에 붙일 수 없는 에러일 때만 있다 */
   banner: string | null
-  /** 접수됐는지 알 수 없다(네트워크 오류, 5xx). 주문 목록을 새로고침해 확인하게 안내한다 */
+  /** 접수됐는지 알 수 없다(네트워크 오류, 5xx, 409 IDEMPOTENCY_KEY_IN_PROGRESS). 다음 클릭은 같은 Idempotency-Key로 보낸다 */
   uncertain: boolean
 }
 
@@ -18,7 +18,11 @@ const UNAUTHENTICATED = 'X-Member-Id는 1 이상의 숫자여야 합니다.'
 // 서버는 남의 계좌도 없는 계좌와 똑같이 응답한다. 화면도 둘을 구분하지 않는다
 const ACCOUNT_NOT_FOUND = '계좌를 찾을 수 없습니다. 내 계좌가 맞는지 확인해 주세요.'
 const PLACE_UNCERTAIN =
-  '주문 결과를 확인하지 못했어요. 주문 목록을 새로고침해 접수됐는지 확인한 뒤 다시 시도해 주세요.'
+  '주문 결과를 확인하지 못했어요. 그대로 다시 누르면 같은 키(Idempotency-Key)로 보내므로 두 번 접수되지 않아요. 종목·가격·수량을 바꾸면 새 주문으로 접수돼요. 주문 목록에서 접수 여부도 확인할 수 있어요.'
+// 서버 detail에는 키 값이 들어 있어 그대로 보여 주지 않는다
+const IDEMPOTENCY_KEY_IN_PROGRESS =
+  '앞서 보낸 같은 주문을 서버가 아직 처리 중이에요. 잠시 뒤 다시 누르면 같은 키로 보내 결과를 받아요.'
+const IDEMPOTENCY_KEY_REUSED = '이 주문 키는 내용이 다른 주문에 이미 쓰였어요. 다시 누르면 새 키로 보내요.'
 const CANCEL_UNCERTAIN = '취소 결과를 확인하지 못했어요. 주문 목록을 다시 불러왔으니 상태를 확인해 주세요.'
 
 function defaultMessage(error: ApiError): string {
@@ -30,7 +34,11 @@ function defaultMessage(error: ApiError): string {
  * - INVALID_INPUT → errors[].field에 맞는 입력칸 (붙일 칸이 없으면 배너)
  * - STOCK_NOT_FOUND → 종목 칸
  * - INSUFFICIENT_AVAILABLE_AMOUNT, UNAUTHENTICATED, ACCOUNT_NOT_FOUND, 그 밖의 4xx → 배너
+ * - IDEMPOTENCY_KEY_IN_PROGRESS(409) → 같은 키의 앞 요청이 처리 중이라는 배너. 결과를 모르므로 uncertain
+ * - IDEMPOTENCY_KEY_REUSED(422) → 키가 다른 내용에 쓰였다는 배너. 확정된 실패
  * - 네트워크 오류, 5xx → 접수 여부를 알 수 없다는 배너
+ *
+ * uncertain은 shouldReuseIdempotencyKey(idempotencyKey.ts)와 같은 기준이다
  */
 export function toPlaceOrderErrorFeedback(error: unknown): PlaceOrderErrorFeedback {
   if (error instanceof NetworkError) {
@@ -77,6 +85,13 @@ export function toPlaceOrderErrorFeedback(error: unknown): PlaceOrderErrorFeedba
       return { fieldErrors: {}, banner: UNAUTHENTICATED, uncertain: false }
     case 'ACCOUNT_NOT_FOUND':
       return { fieldErrors: {}, banner: ACCOUNT_NOT_FOUND, uncertain: false }
+    case 'IDEMPOTENCY_KEY_IN_PROGRESS':
+      if (error.status === 409) {
+        return { fieldErrors: {}, banner: IDEMPOTENCY_KEY_IN_PROGRESS, uncertain: true }
+      }
+      break
+    case 'IDEMPOTENCY_KEY_REUSED':
+      return { fieldErrors: {}, banner: IDEMPOTENCY_KEY_REUSED, uncertain: false }
   }
   return { fieldErrors: {}, banner: defaultMessage(error), uncertain: false }
 }

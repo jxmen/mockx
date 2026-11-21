@@ -1,4 +1,4 @@
-import { apiRequest } from './client'
+import { apiRequest, apiRequestWithHeaders } from './client'
 
 /** 매수·매도. 지금은 BUY만 접수한다(SELL은 400 INVALID_INPUT, field=side). docs/design/order.md */
 export type OrderSide = 'BUY' | 'SELL'
@@ -26,6 +26,12 @@ export type PlaceOrderResponse = {
   quantity: number
   /** 접수 직후라 항상 ACCEPTED */
   status: OrderStatus
+}
+
+export type PlaceOrderResult = {
+  order: PlaceOrderResponse
+  /** 같은 키·같은 내용의 재전송이라 새로 접수하지 않고 첫 응답을 돌려받았다(Idempotent-Replayed: true) */
+  replayed: boolean
 }
 
 export type CancelOrderResponse = PlaceOrderResponse & {
@@ -67,13 +73,26 @@ export function ordersPath(accountId: number | string, query: string): string {
  * 지정가 매수 주문을 접수한다. 주문 금액(price × quantity)만큼 예수금이 묶인다(hold).
  * 없는 종목은 404 STOCK_NOT_FOUND, 남의 계좌·없는 계좌는 404 ACCOUNT_NOT_FOUND,
  * 주문 금액이 주문 가능 금액(예수금 − hold)을 넘으면 422 INSUFFICIENT_AVAILABLE_AMOUNT
+ *
+ * idempotencyKey는 Idempotency-Key 헤더로 보낸다(필수, 범위는 회원 + 키). docs/design/order.md 15장
+ * - 주문 의도 하나당 키 하나. 결과를 모르는 재시도는 같은 키로 보낸다
+ * - 같은 키 + 같은 내용 → 첫 응답과 같은 201(같은 orderId)을 다시 받는다(Idempotent-Replayed: true)
+ * - 같은 키의 앞 요청이 아직 처리 중 → 409 IDEMPOTENCY_KEY_IN_PROGRESS
+ * - 같은 키 + 다른 내용 → 422 IDEMPOTENCY_KEY_REUSED
  */
-export function placeOrder(
+export async function placeOrder(
   accountId: number | string,
   request: PlaceOrderRequest,
   memberId: string | null,
-): Promise<PlaceOrderResponse> {
-  return apiRequest<PlaceOrderResponse>(ordersBasePath(accountId), { method: 'POST', body: request, memberId })
+  idempotencyKey: string,
+): Promise<PlaceOrderResult> {
+  const { data, headers } = await apiRequestWithHeaders<PlaceOrderResponse>(ordersBasePath(accountId), {
+    method: 'POST',
+    body: request,
+    memberId,
+    headers: { 'Idempotency-Key': idempotencyKey },
+  })
+  return { order: data, replayed: headers.get('Idempotent-Replayed') === 'true' }
 }
 
 /**

@@ -46,6 +46,16 @@ public/
   stocks/       종목 아이콘. 파일 이름은 심볼 대문자 그대로(`MU.png`). 배포 서버는 대소문자를 구분한다
 ```
 
+## 주문 접수의 Idempotency-Key
+
+주문 접수(`POST /api/accounts/{accountId}/orders`)는 `Idempotency-Key` 헤더가 필수다. 키 생명주기는 `docs/design/order.md` 15장 "클라이언트"를 따른다.
+
+- 처음 주문할 때 `crypto.randomUUID()`로 새 키를 만든다.
+- 결과를 모르는 실패(네트워크 오류, 5xx, 409 `IDEMPOTENCY_KEY_IN_PROGRESS`)면 키를 그대로 두고, 다시 누르면 같은 키로 보낸다. 서버가 한 번만 접수한다.
+- 확정된 결과(201, 그 밖의 4xx)를 받거나 종목·가격·수량(개발 모드의 side·검증 끄기 포함)을 바꾸면 키를 버린다. 다음 주문은 새 키로 보낸다.
+- 키는 화면 메모리(`useRef`)에만 둔다. 새로고침하면 사라진다.
+- 키를 다시 쓸지는 `features/order/idempotencyKey.ts`의 `shouldReuseIdempotencyKey`가 판단한다. 에러 배너의 `uncertain`과 같은 기준이다.
+
 ## 개발 모드 전용 기능
 
 - 헤더의 `X-Member-Id` 입력칸: 로그인 대신 회원을 전환한다. 가입에 성공하면 새 회원 ID로 바뀐다.
@@ -55,6 +65,7 @@ public/
 - 입금 화면의 "다른 계좌 id로 보내기": 남의 계좌·없는 계좌로 보내 소유자 검증(404 `ACCOUNT_NOT_FOUND`)을 확인한다.
 - 종목 화면의 "sort 직접 입력": 허용하지 않은 필드·잘못된 방향·여러 개 정렬을 보내 정렬 검증(400 `INVALID_INPUT`)을 확인한다. 공백으로 나누면 `sort=`를 여러 번 보낸다.
 - 주문 화면(`/orders`)의 "클라이언트 검증 끄기": 종목·가격·수량을 검사하지 않고(가격도 센트로 바꾸지 않고) 입력값 그대로 보내 서버 검증(400 `INVALID_INPUT`)을 확인한다. 켜면 side 선택칸(`BUY`·`SELL`·`buy`)이 나타나 `SELL`은 400(field=side), `buy`는 서버가 정규화해 201이 되는 것을 볼 수 있다.
+- 주문 화면의 "직전 키 다시 쓰기": 마지막으로 201을 받은 `Idempotency-Key`로 보낸다. 켜면 그 주문의 입력값이 채워지고, 그대로 보내면 재응답 201(`Idempotent-Replayed: true`, 같은 주문 번호, hold 그대로), 종목·가격·수량을 바꿔 보내면 422 `IDEMPOTENCY_KEY_REUSED`를 확인한다. 서버는 실패한 요청의 키를 지우므로 201을 받은 키만 다시 쓴다(주문이 한 번 접수되기 전에는 비활성).
 - 종목 상세 화면(`/stocks/:symbol`)의 심볼 예시: `mu`(200, 대문자로 찾음), `AAPL`·10자(404 `STOCK_NOT_FOUND`), 11자·숫자·`mü`·`ſpy`(400 `INVALID_INPUT`)로 이동한다. 상세 화면은 심볼을 바꾸지 않고 서버에 그대로 보내므로 주소창에 직접 입력해도 된다.
 
 모두 `import.meta.env.DEV`일 때만 보인다.
