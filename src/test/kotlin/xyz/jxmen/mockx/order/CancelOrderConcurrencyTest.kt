@@ -28,9 +28,9 @@ import java.util.concurrent.TimeUnit
  * - 계좌에 다른 ACCEPTED 주문을 깔아 둔다. hold가 두 번 풀리면 그 주문의 몫이 사라져 불변식이 깨진다.
  *   주문이 하나뿐이면 두 번째 release가 Account.release의 require로 500이 나서 버그가 가려진다.
  * - 계좌 락을 잡기 전에 주문을 읽으면, 락을 기다린 요청이 예전 상태(ACCEPTED)를 보고 다시 풀 수 있다.
- *   (docs/db-design-order.md 9장 "락을 잡은 뒤에 읽는 값". 그 장의 "확인 필요"를 이 테스트로 확인한다)
+ *   (docs/design/order.md 9장 "락을 잡은 뒤에 읽는 값"을 이 테스트로 확인한다)
  * - 락 순서가 틀려도 실행할 때마다 결과가 달라질 수 있다. 한 번 통과했다고 안전한 것은 아니다.
- * - 계약은 docs/db-design-order.md 3장(hold 불변식), 7장(처리 흐름), 9장(동시성 제어), 13장(테스트)을 따른다.
+ * - 계약은 docs/design/order.md 3장(hold 불변식), 7장(처리 흐름), 9장(동시성 제어), 13장(테스트)을 따른다.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")

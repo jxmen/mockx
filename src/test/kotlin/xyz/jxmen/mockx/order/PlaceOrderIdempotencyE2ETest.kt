@@ -29,7 +29,7 @@ import xyz.jxmen.mockx.signup
  * - 키 범위는 회원별이다. 다른 회원의 같은 키와 섞이지 않는다.
  * - 키는 테스트마다 새로 만든다. 캐시는 테이블을 비워도 남아서, 고정 키를 쓰면 앞 테스트의 응답이 돌아온다.
  * - 같은 키 동시 요청은 PlaceOrderIdempotencyConcurrencyTest가 맡는다.
- * - 계약은 docs/db-design-order.md 13장(테스트), 16장(Idempotency-Key)을 따른다.
+ * - 계약은 docs/design/order.md 13장(테스트), 15장(Idempotency-Key)을 따른다.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -177,7 +177,7 @@ class PlaceOrderIdempotencyE2ETest(
             }
 
             context("같은 키로 표기만 다른 같은 주문을 보내면") {
-                // 지문은 본문 원문이 아니라 정규화한 값(symbol 대문자, side enum)으로 만든다 (docs/db-design-order.md 16장 "저장 형식")
+                // 지문은 본문 원문이 아니라 정규화한 값(symbol 대문자, side enum)으로 만든다 (docs/design/order.md 15장 "저장 형식")
                 it("symbol·side 대소문자와 필드 순서가 달라도 재응답 201을 받고, 주문은 1건이다") {
                     val (memberId, accountId) = openAccount("Alice", balance)
                     val key = newIdempotencyKey()

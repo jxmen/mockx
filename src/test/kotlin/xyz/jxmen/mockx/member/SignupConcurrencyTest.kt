@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger
 /**
  * 회원가입 동시성 테스트. SignupService를 여러 스레드에서 직접 호출하고, Testcontainers MySQL을 쓴다.
  * - 같은 username으로 가입이 동시에 몰려도 1건만 성공해야 한다. 조회 후 insert로는 경쟁 조건을 막을 수 없고,
- *   username UNIQUE 제약(`uk_member_username`)이 최종 방어선이다 (docs/db-design-member.md 3장).
+ *   username UNIQUE 제약(`uk_member_username`)이 최종 방어선이다 (docs/design/member.md 3장).
  * - 실패한 요청은 모두 DuplicateUsernameException(→ 409)이어야 한다. 데드락이나 변환되지 않은
  *   DataIntegrityViolationException으로 끝나면 사용자에게 500이 나간다.
  * - 409 응답 형식은 SignupE2ETest가 검증하므로 여기서는 HTTP 계층을 빼고 트랜잭션과 제약 동작만 본다.

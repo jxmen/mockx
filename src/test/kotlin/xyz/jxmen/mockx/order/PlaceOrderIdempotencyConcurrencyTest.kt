@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit
  * - 409와 재응답의 비율은 실행마다 다르다. 그래서 "새로 처리된 201이 1건"과 "주문 1건, hold 1번"으로 확인한다.
  * - 예수금은 100건을 모두 받을 만큼 채운다. 1건만 받을 만큼이면 키 처리가 없어도 주문이 1건이라 우연히 통과한다.
  * - "확인 후 등록"이 원자적이지 않으면 실행할 때마다 결과가 달라질 수 있다. 한 번 통과했다고 안전한 것은 아니다.
- * - 계약은 docs/db-design-order.md 13장(테스트), 16장(처리 흐름)을 따른다.
+ * - 계약은 docs/design/order.md 13장(테스트), 15장(처리 흐름)을 따른다.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")

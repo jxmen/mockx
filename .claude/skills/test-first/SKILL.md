@@ -5,7 +5,7 @@ description: mockx 기능을 구현하기 전에 테스트 시나리오(정상·
 
 # test-first
 
-mockx의 개발 흐름은 **시나리오 합의 → Claude가 실패하는 테스트 작성 → 사용자가 `src/main`을 구현해 통과**다. 어떤 케이스를 테스트할지 고르는 일은 면접 대비 영역이라 사용자가 결정한다. Claude는 목록을 제안하고, 테스트 코드와 실행을 맡는다.
+mockx의 개발 흐름은 **시나리오 합의 → Claude가 실패하는 테스트 작성 → 사용자가 `src/main`을 구현해 통과**다. 어떤 케이스를 테스트할지 고르는 일은 기능을 제대로 이해했는지 드러나는 부분이라 사용자가 결정한다. Claude는 목록을 제안하고, 테스트 코드와 실행을 맡는다.
 
 ## 절대 하지 않는 것
 
@@ -17,7 +17,7 @@ mockx의 개발 흐름은 **시나리오 합의 → Claude가 실패하는 테�
 
 시나리오를 만들기 전에 다음을 읽는다.
 
-1. 대상 기능의 설계 문서: `docs/db-design-*.md`, 관련 비교 문서. 문서의 정책·입력 규칙·에러 응답 표가 기대값의 기준이다.
+1. 대상 기능의 설계 문서: `docs/design/*.md`, 관련 비교 문서. 문서의 정책·입력 규칙·에러 응답 표가 기대값의 기준이다.
 2. 관련 `src/main` 코드(있다면): 요청 DTO, 컨트롤러 경로, 예외 클래스, 엔티티 메서드.
 3. 같은 도메인의 기존 테스트: 헬퍼와 스타일을 그대로 따르기 위해서다.
    - E2E 예: `src/test/kotlin/xyz/jxmen/mockx/account/DepositE2ETest.kt` (`RestClient` + `exchange`, `ApiResponse`, `shouldBeProblem`, `resetTables`)
@@ -46,7 +46,7 @@ mockx의 개발 흐름은 **시나리오 합의 → Claude가 실패하는 테�
 
 ```
 **대상**: 입금 API (`POST /api/accounts/{id}/deposit`)
-**기준 문서**: docs/db-design-member.md 5장, 6장
+**기준 문서**: docs/design/member.md 5장, 6장
 
 ### 제안 시나리오
 1. [정상] 내 계좌에 $10,000 입금 → 200, balance 10,000
@@ -126,4 +126,4 @@ Testcontainers를 쓰므로 Docker가 떠 있어야 한다. Docker 오류로 실
 ```
 
 - "다음"에는 어느 계층에서 해결될지 **위치만** 짚는다. 구현 방법은 쓰지 않는다. 사용자가 물으면 `hint-review` 방식(방향 → 시그니처)으로 답한다.
-- 합의한 시나리오 목록을 설계 문서의 테스트 섹션(예: `db-design-member.md` 8장)에 반영할지 마지막에 묻는다.
+- 합의한 시나리오 목록을 설계 문서의 테스트 섹션(예: `docs/design/member.md` 8장)에 반영할지 마지막에 묻는다.

@@ -7,7 +7,7 @@ type DemoStep = {
   /** 화면이 없으면 null (준비 중) */
   to: string | null
   summary: ReactNode
-  /** 화면에서 일부러 내 볼 만한 에러. 면접에서 서버 검증을 보여 주는 용도다 */
+  /** 화면에서 일부러 내 볼 만한 에러. 서버 검증이 어떻게 동작하는지 보여 주는 용도다 */
   tryThis: ReactNode
 }
 
@@ -142,8 +142,8 @@ const PROGRESS: ProgressItem[] = [
       </>
     ),
     docs: [
-      { label: '회원 설계', file: 'db-design-member.md' },
-      { label: '계좌 설계', file: 'db-design-account.md' },
+      { label: '회원 설계', file: 'design/member.md' },
+      { label: '계좌 설계', file: 'design/account.md' },
     ],
   },
   {
@@ -155,15 +155,15 @@ const PROGRESS: ProgressItem[] = [
       </>
     ),
     docs: [
-      { label: '입금 설계', file: 'db-design-account.md' },
-      { label: '단식부기 vs 복식부기', file: 'ledger-single-vs-double-entry.md' },
+      { label: '입금 설계', file: 'design/account.md' },
+      { label: '단식부기 vs 복식부기', file: 'design/ledger-single-vs-double-entry.md' },
     ],
   },
   {
     area: '에러 응답',
     status: 'done',
     detail: '검증·권한 에러를 RFC 9457 Problem Details와 code 필드로 응답, 남의 리소스는 404로 숨김',
-    docs: [{ label: '에러 응답 규칙', file: 'db-design-member.md' }],
+    docs: [{ label: '에러 응답 규칙', file: 'design/member.md' }],
   },
   {
     area: '종목 목록·상세',
@@ -174,7 +174,7 @@ const PROGRESS: ProgressItem[] = [
         찾음 (<code>StockE2ETest</code>)
       </>
     ),
-    docs: [{ label: '종목 설계', file: 'db-design-stock.md' }],
+    docs: [{ label: '종목 설계', file: 'design/stock.md' }],
   },
   {
     area: '지정가 주문·예수금 hold',
@@ -185,7 +185,7 @@ const PROGRESS: ProgressItem[] = [
         <code>PlaceOrderConcurrencyTest</code>), 같은 주문 동시 취소 10건 중 1건만 성공 (<code>CancelOrderConcurrencyTest</code>)
       </>
     ),
-    docs: [{ label: '주문 설계', file: 'db-design-order.md' }],
+    docs: [{ label: '주문 설계', file: 'design/order.md' }],
   },
   {
     area: '주문 상태 머신',

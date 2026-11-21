@@ -804,7 +804,7 @@ a.button--block {
   background: var(--color-field);
 }
 
-/* 상장 국가 배지. 지금은 전 종목이 미국 상장이다(docs/db-design-stock.md 1장) */
+/* 상장 국가 배지. 지금은 전 종목이 미국 상장이다(docs/design/stock.md 1장) */
 .stock-logo__flag {
   position: absolute;
   right: -4px;
@@ -1030,7 +1030,7 @@ a.button--block {
   white-space: nowrap;
 }
 
-/* 랜딩. 면접관에게 시연 순서와 구현 현황을 보여 준다 */
+/* 랜딩. 방문자에게 시연 순서와 구현 현황을 보여 준다 */
 .home-hero {
   padding-top: 16px;
 }

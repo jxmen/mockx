@@ -7,7 +7,7 @@ export type StockDetailError = {
 }
 
 /**
- * 종목 상세 조회 실패를 화면에 보여 줄 문구로 바꾼다. 분기는 code로 한다. docs/db-design-stock.md 4.6
+ * 종목 상세 조회 실패를 화면에 보여 줄 문구로 바꾼다. 분기는 code로 한다. docs/design/stock.md 4.6
  * - INVALID_INPUT → 심볼이 영문 1~10자가 아님
  * - STOCK_NOT_FOUND → 형식은 맞지만 없는 종목
  * - 조회라서 돈이 움직이지 않는다. 네트워크 오류, 5xx는 다시 불러오면 된다

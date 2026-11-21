@@ -15,7 +15,7 @@
         "리뷰 범위(Ledger.kt, LedgerType.kt)를 밝힌다",
         "지적 항목에 파일:라인 위치를 쓴다",
         "TODO의 필드 질문에 정답 필드 목록을 나열하지 않고 생각할 질문으로 답한다",
-        "docs/ledger-single-vs-double-entry.md 설계 문서를 참조한다"
+        "docs/design/ledger-single-vs-double-entry.md 설계 문서를 참조한다"
       ]
     },
     {

@@ -28,10 +28,10 @@ import java.time.temporal.ChronoUnit
 /**
  * 매수 주문 취소 API E2E 테스트. Testcontainers MySQL로 전체를 띄운다.
  * - 취소하면 그 주문의 hold(price × quantity)만 풀리고, 예수금과 원장은 그대로다.
- * - 불변식: hold_amount = 그 계좌의 ACCEPTED 주문들의 price × quantity 합계 (docs/db-design-order.md 3장)
+ * - 불변식: hold_amount = 그 계좌의 ACCEPTED 주문들의 price × quantity 합계 (docs/design/order.md 3장)
  * - 남의 주문은 없는 주문과 같은 404 ORDER_NOT_FOUND, 남의 계좌는 없는 계좌와 같은 404 ACCOUNT_NOT_FOUND다.
  * - 입력 검증(경로 변수 형식, 인증 헤더)은 CancelOrderControllerTest가 맡는다.
- * - 계약은 docs/db-design-order.md 4장(상태), 7장(처리 흐름), 10장(에러 응답)을 따른다.
+ * - 계약은 docs/design/order.md 4장(상태), 7장(처리 흐름), 10장(에러 응답)을 따른다.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")

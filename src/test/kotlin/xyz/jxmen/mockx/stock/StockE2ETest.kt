@@ -27,7 +27,7 @@ import xyz.jxmen.mockx.ApiResponse
  *   대문자로 바꿔 조회한다(mu → MU). 없는 종목은 404 STOCK_NOT_FOUND.
  * - DB 콜레이션(utf8mb4_0900_ai_ci)이 대소문자를 무시하므로, 대문자 정규화를 빠뜨려도 소문자 요청 케이스는 통과한다. 이 테스트로는 정규화 누락을 잡지 못한다.
  * - 설정이 DepositE2ETest와 같아서 Spring 컨텍스트와 MySQL 컨테이너를 재사용한다.
- * - 계약은 docs/db-design-stock.md 1장(식별자), 4.3(대소문자), 4.4(종목 데이터), 4.5(목록 API)를 따른다.
+ * - 계약은 docs/design/stock.md 1장(식별자), 4.3(대소문자), 4.4(종목 데이터), 4.5(목록 API)를 따른다.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -94,7 +94,7 @@ class StockE2ETest(
                     val response = getStocks()
 
                     response.body.keys shouldContainExactlyInAnyOrder listOf("stocks")
-                    // 내부 id, 생성·수정 시각은 노출하지 않는다 (docs/db-design-stock.md 1장)
+                    // 내부 id, 생성·수정 시각은 노출하지 않는다 (docs/design/stock.md 1장)
                     response.stocks().forEach { stock ->
                         stock.keys shouldContainExactlyInAnyOrder listOf("symbol", "name")
                     }
@@ -164,7 +164,7 @@ class StockE2ETest(
                     response.body["name"] shouldBe "Micron Technology"
                 }
                 it("응답 본문에는 symbol, name만 있다") {
-                    // 감싸지 않고, 내부 id와 생성·수정 시각은 노출하지 않는다 (docs/db-design-stock.md 1장)
+                    // 감싸지 않고, 내부 id와 생성·수정 시각은 노출하지 않는다 (docs/design/stock.md 1장)
                     getStock("MU").body.keys shouldContainExactlyInAnyOrder listOf("symbol", "name")
                 }
             }
@@ -176,7 +176,7 @@ class StockE2ETest(
             }
 
             context("심볼에 소문자가 섞여 있으면") {
-                // 콜레이션이 대소문자를 무시해서 정규화 없이도 통과한다. 정규화 누락은 이 테스트로 잡지 못한다 (docs/db-design-stock.md 4.3)
+                // 콜레이션이 대소문자를 무시해서 정규화 없이도 통과한다. 정규화 누락은 이 테스트로 잡지 못한다 (docs/design/stock.md 4.3)
                 withData(
                     nameFn = { (symbol, expected) -> "$symbol 이면 대문자로 바꿔 찾고 symbol을 $expected 로 응답한다" },
                     "mu" to "MU",

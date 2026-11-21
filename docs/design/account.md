@@ -1,6 +1,6 @@
 # 계좌(Account) 설계
 
-> 최종 수정: 2026-10-24. 회원가입 흐름과 테이블 공통 규칙(단수형 이름, `DATETIME(6)` UTC, 제약 이름, Flyway)은 [`db-design-member.md`](db-design-member.md)를 참고한다. 원장 방식은 [`ledger-single-vs-double-entry.md`](ledger-single-vs-double-entry.md), 종목은 [`db-design-stock.md`](db-design-stock.md), 매수 주문의 hold·release는 [`db-design-order.md`](db-design-order.md)를 참고한다.
+> 최종 수정: 2026-10-24. 회원가입 흐름과 테이블 공통 규칙(단수형 이름, `DATETIME(6)` UTC, 제약 이름, Flyway)은 [`member.md`](member.md)를 참고한다. 원장 방식은 [`ledger-single-vs-double-entry.md`](ledger-single-vs-double-entry.md), 종목은 [`stock.md`](stock.md), 매수 주문의 hold·release는 [`order.md`](order.md)를 참고한다.
 
 ## 1. 정책
 
@@ -12,7 +12,7 @@
 | 연관관계 | Member를 `memberId: Long`으로 ID만 참조 |
 | 통화·단위 | USD, 정수 센트(`Money.amount: Long`, $1 = 100). DB와 API 요청·응답 모두 센트다. 센트보다 작은 단위는 받지 않는다(입금 `10.5`는 400) |
 
-- 처음에는 정수 달러였다. 주문 가격에 센트가 필요해서 정수 센트로 바꿨다([`db-design-stock.md`](db-design-stock.md) 4.1, `V3__convert_money_to_cents.sql`).
+- 처음에는 정수 달러였다. 주문 가격에 센트가 필요해서 정수 센트로 바꿨다([`stock.md`](stock.md) 4.1, `V3__convert_money_to_cents.sql`).
 
 ## 2. 테이블
 
@@ -105,10 +105,10 @@ DepositService.deposit(accountId, memberId, amount)   @Transactional
  └─ ledgerRepository.save(Ledger.createDeposit())     원장 DEPOSIT 1건, balance_after 기록
 ```
 
-- 계좌 조회 조건에 `memberId`를 함께 넣어 소유자 검증을 조회 한 번으로 끝낸다. 남의 계좌와 없는 계좌는 같은 404다([`db-design-member.md`](db-design-member.md) 5장).
+- 계좌 조회 조건에 `memberId`를 함께 넣어 소유자 검증을 조회 한 번으로 끝낸다. 남의 계좌와 없는 계좌는 같은 404다([`member.md`](member.md) 5장).
 - 동시성은 계좌 행 비관적 락으로 제어한다. 같은 계좌에 들어온 입금은 락을 얻은 순서대로 하나씩 처리되고, 락은 커밋할 때 풀린다.
 - 예수금 변경과 원장 기록은 한 트랜잭션이다. 둘 중 하나만 반영되지 않는다.
-- 비관적 락을 고른 이유(낙관적 락과 비교)는 [`db-design-order.md`](db-design-order.md) 9장에 있다. 매수 주문 접수·취소도 같은 계좌 행 락을 쓴다.
+- 비관적 락을 고른 이유(낙관적 락과 비교)는 [`order.md`](order.md) 9장에 있다. 매수 주문 접수·취소도 같은 계좌 행 락을 쓴다.
 
 ### 에러 응답
 

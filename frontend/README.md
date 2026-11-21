@@ -17,7 +17,7 @@ npm run dev   # http://localhost:5173
 
 ## 랜딩(`/`)
 
-면접관용 지키는 규칙, 시연 순서, 구현 현황을 보여 준다. 규칙과 구현 현황은 `features/home/HomePage.tsx`의 `MONEY_RULES`, `PROGRESS`에 손으로 적은 값이라, 기능을 끝내면 `docs/` 작업 목록, 루트 `README.md`와 함께 고친다. 루트 README의 스크린샷(`docs/images/landing.png`)은 첫 화면이 크게 바뀔 때 다시 찍는다.
+방문자에게 지키는 규칙, 시연 순서, 구현 현황을 보여 준다. 규칙과 구현 현황은 `features/home/HomePage.tsx`의 `MONEY_RULES`, `PROGRESS`에 손으로 적은 값이라, 기능을 끝내면 `docs/` 작업 목록, 루트 `README.md`와 함께 고친다. 루트 README의 스크린샷(`docs/images/landing.png`)은 첫 화면이 크게 바뀔 때 다시 찍는다.
 
 ## 화면 스타일
 

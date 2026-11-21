@@ -24,7 +24,7 @@ import xyz.jxmen.mockx.signup
  * 입금 API 계약 테스트. 실제 서버(RANDOM_PORT)에 HTTP로 요청하고, Testcontainers MySQL을 쓴다.
  * - amount는 센트 단위 정수다($1 = 100). 1회 입금은 1센트($0.01) 이상 1,000,000센트($10,000) 이하만 허용하고, 소수는 받지 않는다.
  * - 회원과 계좌는 가입 API로 만든다. 설정이 MemberMeE2ETest와 같아서 Spring 컨텍스트와 MySQL 컨테이너를 재사용한다.
- * - 계약은 docs/db-design-member.md 5장(소유자 검증), 6장(에러 응답)을 따른다.
+ * - 계약은 docs/design/member.md 5장(소유자 검증), 6장(에러 응답)을 따른다.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")

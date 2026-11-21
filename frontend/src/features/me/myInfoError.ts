@@ -1,6 +1,6 @@
 import { ApiError, NetworkError } from '../../api/client'
 
-/** 내 정보 조회 실패를 화면에 보여 줄 문구로 바꾼다. 분기는 code로 한다. docs/db-design-member.md 6장 */
+/** 내 정보 조회 실패를 화면에 보여 줄 문구로 바꾼다. 분기는 code로 한다. docs/design/member.md 6장 */
 export function toMyInfoErrorMessage(error: unknown): string {
   if (error instanceof NetworkError) {
     return '서버에 연결할 수 없습니다. 백엔드(./gradlew bootRun)가 켜져 있는지 확인해 주세요.'

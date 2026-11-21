@@ -314,7 +314,7 @@ class PlaceOrderE2ETest(
             }
 
             context("없는 종목으로 남의 계좌에 주문하면") {
-                // 종목 조회가 계좌 조회·락보다 먼저다. 없는 종목 요청 때문에 계좌 락을 잡지 않는다 (docs/db-design-order.md 6장)
+                // 종목 조회가 계좌 조회·락보다 먼저다. 없는 종목 요청 때문에 계좌 락을 잡지 않는다 (docs/design/order.md 6장)
                 it("계좌보다 종목을 먼저 확인해 404 STOCK_NOT_FOUND를 응답한다") {
                     val (aliceId, _) = openAccount("Alice", 0)
                     val (_, bobAccountId) = openAccount("Bob", 200_000)

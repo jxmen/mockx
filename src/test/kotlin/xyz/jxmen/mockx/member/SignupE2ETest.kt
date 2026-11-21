@@ -23,7 +23,7 @@ import xyz.jxmen.mockx.TestcontainersConfiguration
 /**
  * 회원가입 API 계약 테스트. 실제 서버(RANDOM_PORT)에 HTTP로 요청하고, Testcontainers MySQL을 쓴다.
  * - 테스트 트랜잭션을 쓰지 않으므로 요청은 실제로 커밋된다. 대신 테스트마다 테이블을 비우고 순번을 초기화한다.
- * - 계약은 docs/db-design-member.md 4장(응답), 6장(에러 응답)을 따른다.
+ * - 계약은 docs/design/member.md 4장(응답), 6장(에러 응답)을 따른다.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Import(TestcontainersConfiguration::class)
@@ -176,7 +176,7 @@ class SignupE2ETest(
                 }
             }
 
-            // nickname에는 UNIQUE 제약이 없다 (docs/db-design-member.md 3장)
+            // nickname에는 UNIQUE 제약이 없다 (docs/design/member.md 3장)
             context("이미 있는 nickname이면") {
                 it("username이 다르면 둘 다 201로 가입되고, nickname이 같은 회원이 2명 저장된다") {
                     signupSuccessfully(validRequest(username = "Alice", nickname = "앨리스"))

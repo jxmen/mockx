@@ -26,7 +26,7 @@ function defaultMessage(error: ApiError): string {
 }
 
 /**
- * 주문 접수 API 에러를 폼에 표시할 형태로 바꾼다. 분기는 code로 한다. docs/db-design-order.md
+ * 주문 접수 API 에러를 폼에 표시할 형태로 바꾼다. 분기는 code로 한다. docs/design/order.md
  * - INVALID_INPUT → errors[].field에 맞는 입력칸 (붙일 칸이 없으면 배너)
  * - STOCK_NOT_FOUND → 종목 칸
  * - INSUFFICIENT_AVAILABLE_AMOUNT, UNAUTHENTICATED, ACCOUNT_NOT_FOUND, 그 밖의 4xx → 배너

@@ -21,7 +21,7 @@ import java.time.Instant
  * 주문 취소 API의 웹 계층(인증 헤더, 경로 변수 형식, 요청 → Command 변환, 결과 → 응답 변환)만 검증한다.
  * 서비스는 mockk로 대신하므로 DB 없이 돈다. hold·주문 상태 같은 정합성은 CancelOrderE2ETest가 맡는다.
  *
- * - 본문이 없는 요청이라 입력 검증은 경로 변수와 헤더뿐이다. (docs/db-design-order.md 7장, 10장)
+ * - 본문이 없는 요청이라 입력 검증은 경로 변수와 헤더뿐이다. (docs/design/order.md 7장, 10장)
  * - "취소되지 않는다"는 서비스가 호출되지 않았는지로 확인한다.
  */
 @WebMvcTest(OrderController::class)

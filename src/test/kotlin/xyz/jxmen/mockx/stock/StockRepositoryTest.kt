@@ -17,7 +17,7 @@ import xyz.jxmen.mockx.common.jpa.JpaConfig
 
 /**
  * 실제 MySQL(Testcontainers)에 Flyway 스키마와 종목 데이터(V4)를 올려 매핑, 데이터, 제약을 검증한다.
- * - 기준 문서: docs/db-design-stock.md 3장(테이블), 4.2(티커 재사용은 다루지 않음), 4.4(종목 데이터)
+ * - 기준 문서: docs/design/stock.md 3장(테이블), 4.2(티커 재사용은 다루지 않음), 4.4(종목 데이터)
  * - 종목 데이터는 Flyway가 넣고, 테스트(it)에서 저장한 행은 롤백된다. 설정은 MemberRepositoryTest와 같다.
  */
 @DataJpaTest

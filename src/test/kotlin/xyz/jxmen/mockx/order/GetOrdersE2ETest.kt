@@ -33,7 +33,7 @@ import java.time.Instant
  * - 남의 계좌는 없는 계좌와 같은 404 ACCOUNT_NOT_FOUND다.
  * - 주문이 늘어도 쿼리 수가 늘지 않는다(N+1 없음). Hibernate 통계로 요청 하나에서 실행된 JDBC statement 수를 센다.
  * - 필터 값 형식, 경로 변수 형식, 인증 헤더는 GetOrdersControllerTest가 맡는다.
- * - 계약은 docs/db-design-order.md 8장(목록 조회), 10장(에러 응답)을 따른다.
+ * - 계약은 docs/design/order.md 8장(목록 조회), 10장(에러 응답)을 따른다.
  */
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,

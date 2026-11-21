@@ -3,7 +3,7 @@ export type FieldErrorItem = {
   detail: string
 }
 
-/** RFC 9457 Problem Details + 확장 필드(code, field, errors). docs/db-design-member.md 6장 */
+/** RFC 9457 Problem Details + 확장 필드(code, field, errors). docs/design/member.md 6장 */
 export type ProblemDetail = {
   type?: string
   title?: string
@@ -39,7 +39,7 @@ export class NetworkError extends Error {
 type RequestOptions = {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   body?: unknown
-  /** 개발용 인증 스텁. 값이 있으면 X-Member-Id 헤더로 보낸다. docs/db-design-member.md 5장 */
+  /** 개발용 인증 스텁. 값이 있으면 X-Member-Id 헤더로 보낸다. docs/design/member.md 5장 */
   memberId?: string | null
   signal?: AbortSignal
 }

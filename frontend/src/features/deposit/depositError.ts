@@ -12,7 +12,7 @@ export type DepositErrorFeedback = {
 const UNCERTAIN = '입금 결과를 확인하지 못했어요. 예수금을 새로고침해 반영됐는지 확인한 뒤 다시 시도해 주세요.'
 
 /**
- * 입금 API 에러를 폼에 표시할 형태로 바꾼다. 분기는 code로 한다. docs/db-design-member.md 6장
+ * 입금 API 에러를 폼에 표시할 형태로 바꾼다. 분기는 code로 한다. docs/design/member.md 6장
  * - INVALID_INPUT → 금액 칸 메시지 (errors[]가 없는 형식 오류도 입력값은 amount 하나뿐이라 금액 칸에 붙인다)
  * - UNAUTHENTICATED, ACCOUNT_NOT_FOUND, 그 밖의 4xx → 배너
  * - 네트워크 오류, 5xx → 반영 여부를 알 수 없다는 배너

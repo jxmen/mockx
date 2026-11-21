@@ -1,13 +1,13 @@
 import { apiRequest } from './client'
 
 export type StockSummary = {
-  /** 티커. 대문자(예: "MU"). docs/db-design-stock.md 4.3 */
+  /** 티커. 대문자(예: "MU"). docs/design/stock.md 4.3 */
   symbol: string
   /** 종목명(예: "Micron Technology") */
   name: string
 }
 
-/** 페이지 정보 같은 필드가 붙을 수 있어 배열을 stocks로 감싼다. docs/db-design-stock.md 4.5 */
+/** 페이지 정보 같은 필드가 붙을 수 있어 배열을 stocks로 감싼다. docs/design/stock.md 4.5 */
 export type StocksResponse = {
   stocks: StockSummary[]
 }
@@ -35,7 +35,7 @@ export function getStocks(sorts: string[], signal?: AbortSignal): Promise<Stocks
   return apiRequest<StocksResponse>(stocksPath(sorts), { signal })
 }
 
-/** 종목 상세. 목록의 한 항목과 같은 필드다. docs/db-design-stock.md 4.6 */
+/** 종목 상세. 목록의 한 항목과 같은 필드다. docs/design/stock.md 4.6 */
 export type StockResponse = StockSummary
 
 /** 심볼은 경로 변수라 인코딩한다. (예: "mü" → /api/stocks/m%C3%BC, "MU " → /api/stocks/MU%20) */

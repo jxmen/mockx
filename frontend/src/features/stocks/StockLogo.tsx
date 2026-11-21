@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { stockIconUrl } from './stockIcon'
 
 /**
- * public/stocks/{심볼}.png. 심볼(대문자) 그대로 찾는다. 배포 서버는 파일 이름의 대소문자를 구분한다. docs/db-design-stock.md 5장
+ * public/stocks/{심볼}.png. 심볼(대문자) 그대로 찾는다. 배포 서버는 파일 이름의 대소문자를 구분한다. docs/design/stock.md 5장
  * 아이콘이 없는 종목은 첫 글자로 대신한다.
  */
 export function StockLogo({ symbol }: { symbol: string }) {

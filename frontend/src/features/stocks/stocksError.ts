@@ -1,7 +1,7 @@
 import { ApiError, NetworkError } from '../../api/client'
 
 /**
- * 종목 목록 조회 실패를 화면에 보여 줄 문구로 바꾼다. 분기는 code로 한다. docs/db-design-stock.md 4.5
+ * 종목 목록 조회 실패를 화면에 보여 줄 문구로 바꾼다. 분기는 code로 한다. docs/design/stock.md 4.5
  * - INVALID_INPUT → errors[]의 sort 메시지 (허용하지 않은 필드, 잘못된 방향, 정렬 기준 여러 개)
  * - 조회라서 돈이 움직이지 않는다. 네트워크 오류, 5xx도 다시 불러오면 된다
  */

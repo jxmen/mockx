@@ -1,6 +1,6 @@
 import { apiRequest } from './client'
 
-/** 매수·매도. 지금은 BUY만 접수한다(SELL은 400 INVALID_INPUT, field=side). docs/db-design-order.md */
+/** 매수·매도. 지금은 BUY만 접수한다(SELL은 400 INVALID_INPUT, field=side). docs/design/order.md */
 export type OrderSide = 'BUY' | 'SELL'
 /** 접수됨·취소됨. 체결 상태는 매칭 엔진과 함께 추가된다 */
 export type OrderStatus = 'ACCEPTED' | 'CANCELED'

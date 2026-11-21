@@ -73,14 +73,14 @@ git ls-files --others --exclude-standard   # 새 파일
 - src/main/resources/db/migration/V2__create_ledger.sql 수정됨 — main에 이미 있는 마이그레이션. V5로 새로 만들어야 함
 
 ⚠️ 확인 필요
-- docs/db-design-stock.md 작업 목록 "Stock 엔티티 매핑" 미체크
+- docs/design/stock.md 작업 목록 "Stock 엔티티 매핑" 미체크
 - StockController 추가됐는데 테스트 변경 없음
 
 ✅ 통과: 엔티티·스키마 일치, 디버그 코드 없음, 테스트 12/12
 
 **커밋 분리 제안**
 1. Stock 엔티티 매핑 및 repository 추가 — Stock.kt, StockRepository.kt, V4__create_stock.sql
-2. 종목 문서 갱신 — docs/db-design-stock.md
+2. 종목 문서 갱신 — docs/design/stock.md
 
 **커밋 메시지 초안**
 Stock 엔티티 매핑 및 repository 추가

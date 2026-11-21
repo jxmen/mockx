@@ -13,7 +13,7 @@ export const EMPTY_SIGNUP_FORM: SignupForm = {
   passwordConfirm: '',
 }
 
-// 서버 입력 규칙(docs/db-design-member.md 4장)과 같은 허용 목록
+// 서버 입력 규칙(docs/design/member.md 4장)과 같은 허용 목록
 const USERNAME_PATTERN = /^[A-Za-z0-9_-]{2,10}$/
 const NICKNAME_PATTERN = /^[가-힣A-Za-z0-9]{2,10}$/
 const PASSWORD_PATTERN = /^[\x20-\x7E]{4,20}$/

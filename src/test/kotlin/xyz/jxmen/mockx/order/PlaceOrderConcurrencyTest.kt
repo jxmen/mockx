@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit
  *   요청은 Tomcat 스레드를 거쳐 커넥션 풀(기본 10)에서 커넥션을 얻은 만큼만 동시에 DB에 닿는다.
  * - 설정이 DepositE2ETest와 같아서 Spring 컨텍스트와 MySQL 컨테이너를 재사용한다.
  * - 락 없이 구현하면 실행할 때마다 결과가 달라질 수 있다. 한 번 통과했다고 안전한 것은 아니다.
- * - 계약은 docs/db-design-order.md 3장(hold 불변식), 9장(동시성 제어), 13장(테스트)을 따른다.
+ * - 계약은 docs/design/order.md 3장(hold 불변식), 9장(동시성 제어), 13장(테스트)을 따른다.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")

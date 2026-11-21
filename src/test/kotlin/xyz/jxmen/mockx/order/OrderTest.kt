@@ -13,7 +13,7 @@ import java.time.temporal.ChronoUnit
 
 /**
  * 주문 접수(매수)·취소 전이와 hold 금액 계산.
- * 기준: docs/db-design-order.md 4장(상태), 5장(canceled_at), 6장(접수), 7장(취소 흐름)
+ * 기준: docs/design/order.md 4장(상태), 5장(canceled_at), 6장(접수), 7장(취소 흐름)
  * - 매수 주문은 BUY·ACCEPTED로 만든다. 지정가·수량은 양수여야 한다(상한은 입력 검증이 맡는다)
  * - 주문이 속한 계좌만 취소할 수 있다. 다른 계좌면 OrderNotFoundException(404 ORDER_NOT_FOUND)으로, 없는 주문과 구분되지 않는다
  *   소유권을 상태보다 먼저 확인한다. 남의 취소된 주문에 409를 주면 그 주문이 있다는 것이 드러난다

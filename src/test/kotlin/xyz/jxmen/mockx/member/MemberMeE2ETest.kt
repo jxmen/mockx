@@ -23,7 +23,7 @@ import xyz.jxmen.mockx.signup
  * 내 정보 조회 API 계약 테스트. 실제 서버(RANDOM_PORT)에 HTTP로 요청하고, Testcontainers MySQL을 쓴다.
  * - 회원은 가입 API로 만든다. 가입 직후 조회한 값이 가입 응답과 같은지로 member와 account 연결을 검증한다.
  * - 설정이 SignupE2ETest와 같아서 Spring 컨텍스트와 MySQL 컨테이너를 재사용한다. 프로파일을 붙이면 컨텍스트가 따로 뜬다.
- * - 계약은 docs/db-design-member.md 5장(인증), 6장(에러 응답)을 따른다.
+ * - 계약은 docs/design/member.md 5장(인증), 6장(에러 응답)을 따른다.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")

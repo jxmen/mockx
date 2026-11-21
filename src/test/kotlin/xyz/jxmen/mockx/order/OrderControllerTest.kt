@@ -148,7 +148,7 @@ class OrderControllerTest(
                     Long.MIN_VALUE to 1L, // 부호만 보고 거절해야 한다
                     maxPrice + 1 to 1L, // 상한 + 1센트
                     Long.MAX_VALUE to 1L,
-                    // 2^62 + 1. × 4가 오버플로해 4가 된다. 상한 검사가 없으면 4센트만 hold하고 접수된다 (docs/db-design-order.md 6장)
+                    // 2^62 + 1. × 4가 오버플로해 4가 된다. 상한 검사가 없으면 4센트만 hold하고 접수된다 (docs/design/order.md 6장)
                     4_611_686_018_427_387_905L to 4L,
                 ) { (price, quantity) ->
                     resetMock()
@@ -254,7 +254,7 @@ class OrderControllerTest(
             context("side가 BUY가 아니면") {
                 withData(
                     nameFn = { (label, _) -> "side $label 이면 side가 errors에 담긴 400 INVALID_INPUT을 응답하고, 주문은 접수되지 않는다" },
-                    // OrderSide enum에는 있지만 매도 흐름이 없다. 생략하거나 잘못 보낸 값과 똑같이 거절한다 (docs/db-design-order.md 12장 9번)
+                    // OrderSide enum에는 있지만 매도 흐름이 없다. 생략하거나 잘못 보낸 값과 똑같이 거절한다 (docs/design/order.md 12장 9번)
                     "\"SELL\"" to "\"SELL\"",
                     // 대소문자를 무시하므로 소문자 매도도 같은 이유로 거절된다
                     "\"sell\"" to "\"sell\"",

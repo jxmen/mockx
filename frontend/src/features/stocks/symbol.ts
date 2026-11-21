@@ -1,5 +1,5 @@
 /**
- * 요청한 심볼과 서버가 돌려준 심볼이 다른가. 서버는 대문자로 바꿔 찾으므로 mu로 요청하면 MU가 온다. docs/db-design-stock.md 4.3
+ * 요청한 심볼과 서버가 돌려준 심볼이 다른가. 서버는 대문자로 바꿔 찾으므로 mu로 요청하면 MU가 온다. docs/design/stock.md 4.3
  * 화면에서 "서버가 대문자로 바꿔 찾았다"를 보여 줄 때 쓴다.
  */
 export function isNormalizedByServer(requested: string, returned: string): boolean {

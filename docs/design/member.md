@@ -1,6 +1,6 @@
 # 회원(Member) 설계
 
-> 최종 수정: 2026-10-24. 계좌와 계좌번호 설계는 [`db-design-account.md`](db-design-account.md)를 참고한다.
+> 최종 수정: 2026-10-24. 계좌와 계좌번호 설계는 [`account.md`](account.md)를 참고한다.
 
 ## 1. 개요
 
@@ -14,7 +14,7 @@
 
 | 항목 | 규칙 |
 |---|---|
-| 테이블 이름 | 단수형(`member`, `account`). 주문 테이블만 예외로 `orders`다. `order`가 MySQL 예약어이기 때문이다([`db-design-order.md`](db-design-order.md)) |
+| 테이블 이름 | 단수형(`member`, `account`). 주문 테이블만 예외로 `orders`다. `order`가 MySQL 예약어이기 때문이다([`order.md`](order.md)) |
 | 시간 컬럼 | `DATETIME(6)`, UTC로 저장한다. Kotlin 타입은 `Instant`. ISO 8601은 API 응답에서 쓰는 표기법이다 |
 | 생성·수정 시각 | 엔티티 테이블에는 `created_at`, `updated_at`을 둔다. 값은 애플리케이션이 채운다(`BaseTimeEntity` + Spring Data JPA Auditing). DB `DEFAULT`, `ON UPDATE`는 쓰지 않는다 |
 | 제약 이름 | 직접 지정한다(`uk_<테이블>_<컬럼>`). 409로 변환할 때 어떤 제약이 깨졌는지 구분하는 데 쓴다 |
@@ -230,7 +230,7 @@ Content-Type: application/problem+json
 | 비밀번호 변경 | 시간이 남으면 추가한다 |
 | 한글 자판 입력을 QWERTY로 변환(`ㅂㅈㄷㄱ` → `qwer`) | 서버는 거절하고, 프론트는 "한글 입력 상태" 안내만 한다 |
 
-실제 서비스라면 비밀번호 초기화는 이렇게 만든다(면접 대비):
+실제 서비스라면 비밀번호 초기화는 이렇게 만든다:
 - 추측 불가능한 랜덤 토큰, 짧은 만료 시간, 1회용
 - 토큰도 DB에는 해시로 저장
 - 계정 존재 여부를 응답으로 노출하지 않기(user enumeration)
